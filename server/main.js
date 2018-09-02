@@ -4,21 +4,13 @@ import cors from 'cors'
 import log from './lib/logger'
 import config from './lib/config'
 import { db, sql } from './lib/db'
-import processItem from './lib/process-item'
+import itemsR from './routes/items'
 
 const app = express()
 const port = config.PORT
 
 app.use(cors())
-
-const asyncRoute = (fn) => (req, res, next) =>
-  fn(req, res, next).catch(next)
-
-app.get('/items', asyncRoute((req, res, next) =>
-  db.any(sql('topics.sql'))
-    .then((items) => items.map(processItem))
-    .then((items) => res.json(items))
-))
+app.use('/items', itemsR)
 
 app.use((err, req, res, next) => {
   if (res.headersSent) {
@@ -34,6 +26,12 @@ app.use((err, req, res, next) => {
   }
 })
 
-app.listen(port, () => {
-  log.info(`Listening at ${port}`)
-})
+async function main() {
+  // await db.none(sql('view/topic_earliest_subject.sql'))
+
+  app.listen(port, () => {
+    log.info(`Listening at ${port}`)
+  })
+}
+
+main()

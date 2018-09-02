@@ -30,4 +30,9 @@ INSERT INTO topic_category (id, name) VALUES
   (27, 'Tangot ja stemmit'),
   (11, 'Voimansiirto'),
   (12, 'Jarrut'),
-  (82, 'Sähköosat');
+  (82, 'Sähköosat'),
+  (14, 'Vaatteet'),
+  (15, 'Kypärät ja suojat'),
+  (16, 'Kengät'),
+  (44, 'Elektroniikka'),
+  (17, 'Muut');
