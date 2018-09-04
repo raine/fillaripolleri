@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+./scripts/db-backup-prod temp.dump
+dropdb fillaritori
+createdb fillaritori
+pg_restore --verbose --clean --no-acl --no-owner -d fillaritori temp.dump
+rm temp.dump

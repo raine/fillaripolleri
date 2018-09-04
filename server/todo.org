@@ -1,16 +1,20 @@
 * Backlog
-  * TODO Clean up subjects
-    - [ ] Remove "M: "
-    - [ ] Remove "MYYTY - "
-    - [ ] Remove "Myydään"
-      Probably not necessary if only first topic_snapshot of topic is used
-  * TODO Parse price from subject and message
-    Remove from subject
-  * TODO Parse city from subject and message
-    - Remove from subject
-    - Handle abbreviated cities
-    - Need a database of cities and abbreviations
-  * TODO Trim special characters and whitespace from subject
-    There should be no dangling special characters or whitespace at either start
-    or end after city/price/size have been parsed and removed
-  * TODO Try parsing size
+** DONE Clean up subjects
+- [X] Remove "M: "
+- [X] Remove "MYYTY - "
+- [X] Remove "Myydään"
+Probably not necessary if only first topic_snapshot of topic is used
+** DONE Parse price from message
+** TODO Remove price from subject
+  Parsing should not be necessary
+** TODO Parse city from subject and message
+  - Remove from subject
+  - Handle abbreviated cities
+  - Need a database of cities and abbreviations
+** DONE Trim special characters and whitespace from subject
+  There should be no dangling special characters or whitespace at either start
+  or end after city/price/size have been parsed and removed
+** TODO Try parsing size
+** TODO Show sold status in UI
+** TODO Improve search by tokenizing topics
+"lux" should not match "flux"

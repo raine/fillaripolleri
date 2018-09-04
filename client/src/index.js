@@ -1,4 +1,5 @@
 import '../public/reboot.css'
+import '../public/main.scss'
 
 import * as React from 'karet'
 import * as ReactDOM from 'react-dom'

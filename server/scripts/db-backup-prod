@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+
+default_dump_file="fillaritori-$(date '+%Y%m%d').dump"
+dump_file=${1:-$default_dump_file}
 remote_ip=95.216.172.63
 local_port=54322
 service='postgres'
@@ -17,5 +20,5 @@ tunneled_url=$(echo "$dsn" | sed "s/dokku-postgres-$service:5432/localhost:$loca
 ssh -M -S sock -fnNT -L "$local_port:$postgres_ip:5432" $remote_ip
 ssh -S sock -O check $remote_ip 2> /dev/null
 pg_dump --verbose --clean --no-acl --no-owner \
-  -d $tunneled_url -Fc > fillaritori-$(date '+%Y%m%d').dump
+  -d $tunneled_url -Fc > $dump_file
 ssh -S sock -O exit $remote_ip 2> /dev/null

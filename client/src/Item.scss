@@ -1,0 +1,19 @@
+.item {
+  padding: 4px 0;
+}
+
+.title a {
+  color: #212529;
+  font-size: 18px;
+  font-weight: 400;
+  display: block;
+
+  &:visited {
+    color: lighten(#212528, 25%);
+  }
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 400;
+}

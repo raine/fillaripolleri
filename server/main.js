@@ -27,10 +27,8 @@ app.use((err, req, res, next) => {
 })
 
 async function main() {
-  // await db.none(sql('view/topic_earliest_subject.sql'))
-
   app.listen(port, () => {
-    log.info(`Listening at ${port}`)
+    log.info(`listening at ${port}`)
   })
 }
 
