@@ -35,6 +35,7 @@ export const parsePrice = R.pipe(
     /(\d+),-\B/, // 7,-
     /(\d+)€/,
     // Match '2e' without matching '.2e' or 'f2e'
+    /(\d+) euroa/,
     /(?<!\.|\w)(\d+)e/
   ]),
   R.when(x => x, parseInt),

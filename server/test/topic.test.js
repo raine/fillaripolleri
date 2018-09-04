@@ -11,6 +11,7 @@ describe('price', () => {
       ['Hintapyyntö: 20 euroa', 20],
       ['Hintapyyntö: 20 eur', 20],
       ['Hintapyyntö: 20€', 20],
+      ['Hintapyyntö: 20', 20],
       ['Hinta: 20 €', 20],
       ['Hinta: 20 e', 20],
       ['Hp: 20 €', 20],
@@ -19,7 +20,8 @@ describe('price', () => {
       ['20e', 20],
       ['.20e', null],
       ['e20e', null],
-      ['7,-', 7]
+      ['7,-', 7],
+      [' 200 euroa', 200]
     ]
 
     pairs.forEach(([str, expected]) => {
