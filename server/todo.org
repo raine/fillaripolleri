@@ -18,3 +18,4 @@ Probably not necessary if only first topic_snapshot of topic is used
 ** TODO Show sold status in UI
 ** TODO Improve search by tokenizing topics
 "lux" should not match "flux"
+** TODO Implement infinite scrolling

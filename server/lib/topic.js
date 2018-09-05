@@ -3,9 +3,16 @@ import * as L from 'partial.lenses'
 import log from './logger'
 
 const remove = R.replace(R.__, '')
+const removePatterns = (patterns) => (str) =>
+  R.reduce((acc, pat) => remove(pat, acc), str, patterns)
+
 const removeSellingPrefix = remove(/^m:|^myydään?|^myynnissä/i)
 const removeSold = remove(/^myyty( - |:)?\s?/i)
-const trimSpecial = remove(/^[\s!:_\-,]*|[!:_\-,]*$/g)
+const trimSpecial = removePatterns([
+  /^[\s!:_\-,]*/,
+  /[\s!:_\-,/]*$/,
+  /\(\)/ // If removing price results in ()
+])
 
 const sortById = R.sortBy(L.get('id'))
 const isSold = (str) => /myyty/i.test(str)
@@ -29,17 +36,33 @@ const tryPatterns = (patterns) => (str) =>
     patterns
   )
 
+export const removePrice = removePatterns([
+  /\bhinta\b/,
+  /\d+\s?euroa/,
+  /\d+\s?[€e]/
+])
+
 export const parsePrice = R.pipe(
   tryPatterns([
     /(?:Hintapyyntö|Hinta|Hp):?\s?(\d+)\s?(?:€|e|euroa|eur)?/,
     /(\d+),-\B/, // 7,-
-    /(\d+)€/,
+    /(\d+)\s?€/,
+    /(\d+) euroa/i,
+    /(\d+) euros/i,
     // Match '2e' without matching '.2e' or 'f2e'
-    /(\d+) euroa/,
     /(?<!\.|\w)(\d+)e/
   ]),
-  R.when(x => x, parseInt),
+  R.when((x) => x, parseInt),
   R.defaultTo(null)
+)
+
+export const cleanUpSubject = R.pipe(
+  removeSold,
+  removeSold,
+  removeSellingPrefix,
+  removePrice,
+  trimSpecial,
+  R.trim
 )
 
 export const processTopic = (topic) => {
@@ -52,13 +75,7 @@ export const processTopic = (topic) => {
     timestamp: date,
     category,
     link,
-    title: R.pipe(
-      removeSold,
-      removeSold,
-      removeSellingPrefix,
-      trimSpecial,
-      R.trim
-    )(subject),
+    title: cleanUpSubject(subject),
     sold: lastSnapshotIsSold(snapshots),
     price: parsePrice(message)
   }

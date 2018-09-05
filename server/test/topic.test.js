@@ -1,32 +1,38 @@
 import { readFileSync } from 'fs'
-import { parsePrice, processTopic } from '../lib/topic'
+import { parsePrice, processTopic, removePrice, cleanUpSubject } from '../lib/topic'
 
 const readFile = (file) => readFileSync(file, 'utf8')
 const readTestHtml = (id) => readFile(`${__dirname}/data/${id}.html`)
 
+const runTestList = (fn, tests) =>
+  tests.forEach(([x, expected]) => {
+    expect(fn(x)).toEqual(expected)
+  })
+
 describe('price', () => {
-  test('parsePrice', () => {
-    const pairs = [
+  test('parsePrice()', () => {
+    const tests = [
       ['Hp:480 €', 480],
       ['Hintapyyntö: 20 euroa', 20],
       ['Hintapyyntö: 20 eur', 20],
       ['Hintapyyntö: 20€', 20],
       ['Hintapyyntö: 20', 20],
+      // ['Hintapyyntö: 1.200€', 1200],
       ['Hinta: 20 €', 20],
       ['Hinta: 20 e', 20],
       ['Hp: 20 €', 20],
       ['x20€', 20],
+      ['20 €', 20],
       [' 20e', 20],
       ['20e', 20],
       ['.20e', null],
       ['e20e', null],
       ['7,-', 7],
-      [' 200 euroa', 200]
+      [' 200 euroa', 200],
+      [' 200 Euros', 200]
     ]
 
-    pairs.forEach(([str, expected]) => {
-      expect(parsePrice(str)).toEqual(expected, 'foo')
-    })
+    runTestList(parsePrice, tests)
   })
 
   test('hintapyyntö', () => {
@@ -48,8 +54,7 @@ describe('price', () => {
     expect(processTopic(input)).toEqual({
       id: 134148,
       category: 'Täysjousitetut 80-125mm',
-      link:
-        'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
+      link: 'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
       timestamp: '2018-09-03T21:05:31.000+03:00',
       sold: false,
       title: 'Canyon Lux CF 9.9 Race team XL -16',
@@ -112,4 +117,52 @@ describe('price', () => {
       title: 'Dawes Blowfish pyörä 16", Helsinki Uusimaa'
     })
   })
+})
+
+describe('remove price from title', () => {
+  test('removePrice()', () => {
+    const tests = [
+      ['foo 20 e', 'foo '],
+      ['foo 20 €', 'foo '],
+      ['foo 20€', 'foo '],
+      ['foo hinta 20 euroa', 'foo  '],
+      ['foo 20 euroa', 'foo ']
+    ]
+
+    runTestList(removePrice, tests)
+  })
+
+  test('remove 25€ from title', () => {
+    const input = {
+      guid: 131395,
+      date: '2018-08-06T21:23:45.000+03:00',
+      category: 'Kengät',
+      snapshots: [
+        {
+          id: 35611,
+          guid: 131395,
+          link: 'https://www.fillaritori.com/topic/131395-myyty-shimano-r106-maantiekeng%C3%A4tklossit-44-25%E2%82%AC/',
+          message: readTestHtml(35611),
+          subject: 'Shimano R106 maantiekengät+klossit (44) 25€',
+          createdAt: '2018-08-17T13:15:00.296+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      title: 'Shimano R106 maantiekengät+klossit (44)'
+    })
+  })
+})
+
+describe('cleanUpSubject()', () => {
+  const tests = [
+    ['MYYTY - lol', 'lol'],
+    ['MYYTY - MYYTY - lol', 'lol'],
+    ['M: foo', 'foo'],
+    ['M: foo (100€)', 'foo'],
+    ['M: foo    ', 'foo'],
+  ]
+
+  runTestList(cleanUpSubject, tests)
 })

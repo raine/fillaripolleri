@@ -18,8 +18,8 @@ const Time = ({ isoDate }) => (
   </time>
 )
 
-const Item = ({ title, category, timestamp, link, price }) => (
-  <div className={style.item}>
+const Item = ({ title, category, timestamp, link, price, sold }) => (
+  <div className={U.cns(style.item, U.when(sold, style.sold))}>
     <div className={style.title}>
       <a href={link} rel="noreferrer">
         {title}

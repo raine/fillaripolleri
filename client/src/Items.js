@@ -9,14 +9,15 @@ const Items = ({ items }) => (
     {U.mapElemsWithIds(
       'id',
       (item, id) => {
-        const { category, title, timestamp, link, price } = U.destructure(item)
+        const { category, title, timestamp, link, price, sold } = U.destructure(item)
         return <Item key={id} {...{
           id,
           category,
           title,
           timestamp,
           link,
-          price
+          price,
+          sold
         }} />
       },
       items
