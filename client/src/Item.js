@@ -18,7 +18,7 @@ const Time = ({ isoDate }) => (
   </time>
 )
 
-const Item = ({ title, category, timestamp, link, price, sold }) => (
+const Item = ({ title, category, timestamp, link, price, sold, location }) => (
   <div className={U.cns(style.item, U.when(sold, style.sold))}>
     <div className={style.title}>
       <a href={link} rel="noreferrer">
@@ -26,7 +26,7 @@ const Item = ({ title, category, timestamp, link, price, sold }) => (
       </a>
     </div>
     <div className={style.subtitle}>
-      <Time isoDate={timestamp} /> · {category} · {price}€
+      <Time isoDate={timestamp} /> · {category} · {price}€ · {location}
     </div>
   </div>
 )

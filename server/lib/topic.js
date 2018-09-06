@@ -2,6 +2,10 @@ import * as R from 'ramda'
 import * as L from 'partial.lenses'
 import log from './logger'
 
+const locations = require('../data/cities.json')
+const abbrevToLocation = require('../data/cities-abbreviations.json')
+const locationToAbbrev = R.invertObj(abbrevToLocation)
+
 const remove = R.replace(R.__, '')
 const removePatterns = (patterns) => (str) =>
   R.reduce((acc, pat) => remove(pat, acc), str, patterns)
@@ -36,10 +40,21 @@ const tryPatterns = (patterns) => (str) =>
     patterns
   )
 
+const tryFns = (fns) => (val) =>
+  R.reduce(
+    (acc, fn) => {
+      const res = fn(val)
+      return res ? R.reduced(res) : null
+    },
+    null,
+    fns
+  )
+
 export const removePrice = removePatterns([
   /\bhinta\b/,
   /\d+\s?euroa/,
-  /\d+\s?[€e]/
+  /\b\d+\s?e\b/,
+  /\d+\s?€/
 ])
 
 export const parsePrice = R.pipe(
@@ -56,28 +71,67 @@ export const parsePrice = R.pipe(
   R.defaultTo(null)
 )
 
-export const cleanUpSubject = R.pipe(
-  removeSold,
-  removeSold,
-  removeSellingPrefix,
-  removePrice,
-  trimSpecial,
-  R.trim
+export const cleanUpSubject = (location) =>
+  R.pipe(
+    removeSold,
+    removeSold,
+    removeSellingPrefix,
+    removePrice,
+    location
+      ? remove(new RegExp(`\\b${location}`, 'i'))
+      : R.identity,
+    location && locationToAbbrev[location]
+      ? remove(new RegExp(`\\b${locationToAbbrev[location]}`, 'i'))
+      : R.identity,
+    R.replace(/\s\s+/g, ' '),
+    trimSpecial,
+    R.trim
+  )
+
+const capitalize = (str) =>
+  str[0].toUpperCase() + str.slice(1).toLowerCase()
+
+// no \\b after {x} because ä in Jyväskylä is unicode and word boundaries don't
+// work with unicode
+const locationsRegex = new RegExp(locations.map(x => `\\b${x}`).join('|'), 'i')
+const abbrevs = Object.keys(abbrevToLocation)
+const abbrevsRegex = new RegExp(abbrevs.map(x => `\\b${x}\\b`).join('|'), 'i')
+
+const matchGetHead = R.curry((pat, str) => {
+  const m = str.match(pat)
+  return m ? m[0] : null
+})
+
+export const parseLocation = R.pipe(
+  tryFns([
+    matchGetHead(locationsRegex),
+    (str) => {
+      const abbrev = matchGetHead(abbrevsRegex, str)
+      return abbrev ? abbrevToLocation[abbrev.toUpperCase()] : null
+    },
+    tryPatterns([
+      /Paikkakunta:?\s(\S+)/,
+    ])
+  ]),
+  R.when(Boolean, capitalize)
 )
 
 export const processTopic = (topic) => {
+  // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))
   const { snapshots, guid, date, category } = topic
   const snapshot = findLastUnsoldSnapshot(snapshots) || snapshots[0]
   const { link, subject, message } = snapshot
+  const location = parseLocation(`${subject} ${message}`)
 
   return {
     id: guid,
     timestamp: date,
     category,
     link,
-    title: cleanUpSubject(subject),
+    title: cleanUpSubject(location)(subject),
     sold: lastSnapshotIsSold(snapshots),
-    price: parsePrice(message)
+    price: parsePrice(message),
+    location
   }
 }
 

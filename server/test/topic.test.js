@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-import { parsePrice, processTopic, removePrice, cleanUpSubject } from '../lib/topic'
+import { parsePrice, processTopic, removePrice, cleanUpSubject, parseLocation } from '../lib/topic'
 
 const readFile = (file) => readFileSync(file, 'utf8')
 const readTestHtml = (id) => readFile(`${__dirname}/data/${id}.html`)
@@ -55,6 +55,7 @@ describe('price', () => {
       id: 134148,
       category: 'Täysjousitetut 80-125mm',
       link: 'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
+      location: 'Kauhajoki',
       timestamp: '2018-09-03T21:05:31.000+03:00',
       sold: false,
       title: 'Canyon Lux CF 9.9 Race team XL -16',
@@ -83,6 +84,7 @@ describe('price', () => {
       category: 'Muut',
       id: 134116,
       link: 'https://www.fillaritori.com/topic/134116-tacx-flux-treineri/',
+      location: 'Hämeenlinna',
       price: 480,
       sold: false,
       timestamp: '2018-09-03T18:32:01.000+03:00',
@@ -111,10 +113,11 @@ describe('price', () => {
       category: 'Lasten',
       id: 134132,
       link: 'https://www.fillaritori.com/topic/134132-dawes-blowfish-py%C3%B6r%C3%A4-16-helsinki-uusimaa/',
+      location: 'Helsinki',
       price: 110,
       sold: false,
       timestamp: '2018-09-03T19:54:58.000+03:00',
-      title: 'Dawes Blowfish pyörä 16", Helsinki Uusimaa'
+      title: 'Dawes Blowfish pyörä 16", Uusimaa'
     })
   })
 })
@@ -162,7 +165,140 @@ describe('cleanUpSubject()', () => {
     ['M: foo', 'foo'],
     ['M: foo (100€)', 'foo'],
     ['M: foo    ', 'foo'],
+    ['M: foo Helsinki', 'foo'],
+    ['M: foo helsinki', 'foo'],
+    ['M: foo  bar', 'foo bar'],
+    ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
   ]
 
-  runTestList(cleanUpSubject, tests)
+  runTestList(cleanUpSubject('Helsinki'), tests)
+})
+
+describe('location parsing', () => {
+  test('parseLocation()', () => {
+    const tests = [
+      ['hello Helsinki', 'Helsinki'],
+      ['hello HELSINKI', 'Helsinki'],
+      // ['Paikkakunta:Jyväskylä', 'Jyväskylä'],
+    ]
+
+    runTestList(parseLocation, tests)
+  })
+
+  test('Paikkakunta: espoo, not in title', () => {
+    const input = {
+      guid: 134339,
+      date: '2018-09-05T21:55:51.000+03:00',
+      category: 'Satulat ja tolpat',
+      snapshots: [
+        {
+          id: 124590,
+          guid: 134339,
+          link: 'https://www.fillaritori.com/topic/134339-ism-pr-10-satula/',
+          message: readTestHtml(124590),
+          subject: 'ISM PR 1.0 satula',
+          createdAt: '2018-09-05T23:34:33.747+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      location: 'Espoo'
+    })
+  })
+
+  test('Paikkakunta: espoo and in title', () => {
+    const input = {
+      guid: 134339,
+      date: '2018-09-05T21:55:51.000+03:00',
+      category: 'Satulat ja tolpat',
+      snapshots: [
+        {
+          id: 124590,
+          guid: 134339,
+          link: 'https://www.fillaritori.com/topic/134339-ism-pr-10-satula/',
+          message: readTestHtml(124590),
+          subject: 'ISM PR 1.0 satula Espoo',
+          createdAt: '2018-09-05T23:34:33.747+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      location: 'Espoo',
+      title: 'ISM PR 1.0 satula',
+    })
+  })
+
+  test('Tampere in title, no paikkakunta in body', () => {
+    const input = {
+      guid: 134279,
+      date: '2018-09-05T09:40:33.000+03:00',
+      category: 'Etujousitetut',
+      snapshots: [
+        {
+          id: 124548,
+          guid: 134279,
+          link: 'https://www.fillaritori.com/topic/134279-2017-cube-acid-29-19-tampere/',
+          message: readTestHtml(124548),
+          subject: '2017 Cube Acid 29" 19" Tampere',
+          createdAt: '2018-09-05T09:40:36.716+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      location: 'Tampere',
+      title: '2017 Cube Acid 29" 19"'
+    })
+  })
+
+  test('HKI in subject, Paikkakunta: Helsinki', () => {
+    const input = {
+      guid: 134266,
+      date: '2018-09-04T22:12:54.000+03:00',
+      category: 'Kiekot',
+      snapshots: [
+        {
+          id: 124523,
+          guid: 134266,
+          link: 'https://www.fillaritori.com/topic/134266-uudenveroiset-',
+          message: readTestHtml(124523),
+          subject: 'Uudenveroiset maantiekiekot HKI',
+          createdAt: '2018-09-04T22:20:17.142+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      location: 'Helsinki',
+      title: 'Uudenveroiset maantiekiekot'
+    })
+  })
+
+  test('Lpr in subject, Paikkakunta: Lpr', () => {
+    const input = {
+      guid: 134280,
+      date: '2018-09-05T09:40:43.000+03:00',
+      category: 'Rungot',
+      snapshots: [
+        {
+          id: 124551,
+          guid: 134280,
+          link: 'https://www.fillaritori.com/topic/134280-santa-cruz-5010-cc-275-koko-m-lpr/',
+          message: readTestHtml(124551),
+          subject: 'Santa Cruz 5010 CC 27,5" koko M Lpr',
+          createdAt: '2018-09-05T09:50:21.141+03:00'
+        }
+      ]
+    }
+
+    expect(processTopic(input)).toMatchObject({
+      location: 'Lappeenranta',
+      title: 'Santa Cruz 5010 CC 27,5" koko M',
+    })
+  })
+
+  // test pietarsaari
+  // https://www.fillaritori.com/topic/133135-myyty-rapha-core-softshelltakki-l/
 })

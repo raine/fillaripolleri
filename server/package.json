@@ -32,10 +32,15 @@
     },
     "testEnvironment": "node",
     "testURL": "http://localhost",
-    "moduleFileExtensions": ["js", "json"],
+    "moduleFileExtensions": [
+      "js",
+      "json"
+    ],
     "globalSetup": "<rootDir>/test/setup.js"
   },
   "babel": {
-    "plugins": ["babel-plugin-transform-es2015-modules-commonjs"]
+    "plugins": [
+      "babel-plugin-transform-es2015-modules-commonjs"
+    ]
   }
 }
