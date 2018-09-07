@@ -5,9 +5,11 @@
 - [X] Remove "Myydään"
 Probably not necessary if only first topic_snapshot of topic is used
 ** DONE Parse price from message
-** TODO Remove price from subject
+** DONE Remove price from subject
+CLOSED: [2018-09-06 Thu 18:37]
   Parsing should not be necessary
-** TODO Parse city from subject and message
+** DONE Parse city from subject and message
+CLOSED: [2018-09-06 Thu 18:37]
   - Remove from subject
   - Handle abbreviated cities
   - Need a database of cities and abbreviations

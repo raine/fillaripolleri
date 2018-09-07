@@ -2,10 +2,12 @@ import * as React from 'karet'
 import * as U from 'karet.util'
 import * as R from 'kefir.ramda'
 
+import style from './Items.scss'
+
 import Item from './Item'
 
 const Items = ({ items }) => (
-  <div className="items">
+  <div className={style.items}>
     {U.mapElemsWithIds(
       'id',
       (item, id) => {

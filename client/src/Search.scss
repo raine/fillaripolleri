@@ -1,0 +1,21 @@
+.search {
+  // border-radius: 3px;
+  // border: 1px solid #ccc;
+  // padding: 6px 8px;
+  // box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, 0.125);
+  // width: 33%;
+
+  font-size: 18px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 8px;
+  border-bottom: 1px solid #dcdcdc;
+  /* box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, 0.125); */
+  width: 33%;
+
+  &:focus {
+    outline: none;
+  }
+}

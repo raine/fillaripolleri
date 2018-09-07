@@ -179,7 +179,10 @@ describe('location parsing', () => {
     const tests = [
       ['hello Helsinki', 'Helsinki'],
       ['hello HELSINKI', 'Helsinki'],
-      // ['Paikkakunta:Jyväskylä', 'Jyväskylä'],
+      ['Paikkakunta (lisää myös otsikkoon): Kempele', 'Kempele'],
+      ['Paikkakunta\u00a0(lisää myös otsikkoon): Kempele', 'Kempele'],
+      ['Paikkakunta: maybecity yes', 'Maybecity'],
+      ['Paikkakunta:Jyväskylä', 'Jyväskylä'],
     ]
 
     runTestList(parseLocation, tests)

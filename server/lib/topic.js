@@ -33,7 +33,8 @@ const lastSnapshotIsSold = L.get([
 const tryPatterns = (patterns) => (str) =>
   R.reduce(
     (acc, pat) => {
-      const fst = R.match(pat, str)[1]
+      const match = R.match(pat, str)
+      const fst = match[1]
       return fst ? R.reduced(fst) : null
     },
     null,
@@ -58,6 +59,7 @@ export const removePrice = removePatterns([
 ])
 
 export const parsePrice = R.pipe(
+  R.replace(/\u00a0/g, ' '),
   tryPatterns([
     /(?:Hintapyyntö|Hinta|Hp):?\s?(\d+)\s?(?:€|e|euroa|eur)?/,
     /(\d+),-\B/, // 7,-
@@ -103,6 +105,7 @@ const matchGetHead = R.curry((pat, str) => {
 })
 
 export const parseLocation = R.pipe(
+  R.replace(/\u00a0/g, ' '),
   tryFns([
     matchGetHead(locationsRegex),
     (str) => {
@@ -110,7 +113,8 @@ export const parseLocation = R.pipe(
       return abbrev ? abbrevToLocation[abbrev.toUpperCase()] : null
     },
     tryPatterns([
-      /Paikkakunta:?\s(\S+)/,
+      /Paikkakunta \(lisää myös otsikkoon\):\s?(\w{3,})/,
+      /Paikkakunta(?<! \(lisää myös otsikkoon\)):\s?(\w{3,})/
     ])
   ]),
   R.when(Boolean, capitalize)
