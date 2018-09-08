@@ -1,5 +1,6 @@
 import * as R from 'ramda'
 import * as U from 'karet.util'
+import * as K from 'kefir'
 
 let unique = 0
 const next = () => ++unique
@@ -29,12 +30,30 @@ function getLocation() {
     hash: l.hash
   }
 }
-
 export const location = U.atom(getLocation())
-
-popstate.onValue(() => location.set(getLocation()))
 
 location.onValue((next) => {
   if (!R.equals(getLocation(), next))
     window.history.pushState(null, '', `${next.path}${next.search}${next.hash}`)
 })
+
+const any = K.merge([
+  scroll,
+  touchmove,
+  popstate,
+  resize,
+  orientationchange
+]).throttle(0)
+
+const fromWindowProp = (prop, on) => {
+  const getProp = () => window[prop]
+  return on
+    .map(getProp)
+    .toProperty(getProp)
+    .skipDuplicates(Object.is)
+}
+
+export const scrollY = fromWindowProp('scrollY', any)
+export const innerHeight = fromWindowProp('innerHeight', any)
+
+popstate.onValue(() => location.set(getLocation()))
