@@ -20,5 +20,5 @@ tunneled_url=$(echo "$dsn" | sed "s/dokku-postgres-$service:5432/localhost:$loca
 ssh -M -S sock -fnNT -L "$local_port:$postgres_ip:5432" $remote_ip
 ssh -S sock -O check $remote_ip 2> /dev/null
 pg_dump --verbose --clean --no-acl --no-owner \
-  -d $tunneled_url -Fc > $dump_file
+  -d $tunneled_url -Fc -f $dump_file
 ssh -S sock -O exit $remote_ip 2> /dev/null

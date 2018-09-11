@@ -5,10 +5,12 @@ import log from './lib/logger'
 import config from './lib/config'
 import { db, sql } from './lib/db'
 import itemsR from './routes/items'
+import expressPinoLogger from 'express-pino-logger'
 
 const app = express()
 const port = config.PORT
 
+app.use(expressPinoLogger({ logger: log }))
 app.use(cors())
 app.use('/items', itemsR)
 

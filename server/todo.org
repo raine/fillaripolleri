@@ -22,3 +22,4 @@ CLOSED: [2018-09-06 Thu 18:37]
 "lux" should not match "flux"
 ** TODO Implement infinite scrolling
 ** TODO Allow searching for category
+** TODO Try tf-idf

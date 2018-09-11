@@ -4,36 +4,41 @@ import { parsePrice, processTopic, removePrice, cleanUpSubject, parseLocation } 
 const readFile = (file) => readFileSync(file, 'utf8')
 const readTestHtml = (id) => readFile(`${__dirname}/data/${id}.html`)
 
-const runTestList = (fn, tests) =>
-  tests.forEach(([x, expected]) => {
-    expect(fn(x)).toEqual(expected)
+// babel loses the fn.name of exported functions
+// hence separate fnName
+const runTestList = (fnName, fn, tests) =>
+  describe(fnName, () => {
+    tests.forEach(([x, expected]) => {
+      test(`${x} -> ${expected}`, () => {
+        expect(fn(x)).toEqual(expected)
+      })
+    })
   })
 
 describe('price', () => {
-  test('parsePrice()', () => {
-    const tests = [
-      ['Hp:480 €', 480],
-      ['Hintapyyntö: 20 euroa', 20],
-      ['Hintapyyntö: 20 eur', 20],
-      ['Hintapyyntö: 20€', 20],
-      ['Hintapyyntö: 20', 20],
-      // ['Hintapyyntö: 1.200€', 1200],
-      ['Hinta: 20 €', 20],
-      ['Hinta: 20 e', 20],
-      ['Hp: 20 €', 20],
-      ['x20€', 20],
-      ['20 €', 20],
-      [' 20e', 20],
-      ['20e', 20],
-      ['.20e', null],
-      ['e20e', null],
-      ['7,-', 7],
-      [' 200 euroa', 200],
-      [' 200 Euros', 200]
-    ]
+  const tests = [
+    ['Hp:480 €', 480],
+    ['Hintapyyntö: 20 euroa', 20],
+    ['Hintapyyntö: 20 eur', 20],
+    ['Hintapyyntö: 20€', 20],
+    ['Hintapyyntö: 20', 20],
+    // ['Hintapyyntö: 1.200€', 1200],
+    ['Hinta: 20 €', 20],
+    ['Hinta: 20 e', 20],
+    ['Hp: 20 €', 20],
+    ['HP: 370', 370],
+    ['x20€', 20],
+    ['20 €', 20],
+    [' 20e', 20],
+    ['20e', 20],
+    ['.20e', null],
+    ['e20e', null],
+    ['7,-', 7],
+    [' 200 euroa', 200],
+    [' 200 Euros', 200]
+  ]
 
-    runTestList(parsePrice, tests)
-  })
+  runTestList('parsePrice()', parsePrice, tests)
 
   test('hintapyyntö', () => {
     const input = {
@@ -123,17 +128,15 @@ describe('price', () => {
 })
 
 describe('remove price from title', () => {
-  test('removePrice()', () => {
-    const tests = [
-      ['foo 20 e', 'foo '],
-      ['foo 20 €', 'foo '],
-      ['foo 20€', 'foo '],
-      ['foo hinta 20 euroa', 'foo  '],
-      ['foo 20 euroa', 'foo ']
-    ]
+  const tests = [
+    ['foo 20 e', 'foo '],
+    ['foo 20 €', 'foo '],
+    ['foo 20€', 'foo '],
+    ['foo hinta 20 euroa', 'foo  '],
+    ['foo 20 euroa', 'foo ']
+  ]
 
-    runTestList(removePrice, tests)
-  })
+  runTestList('parsePrice()', removePrice, tests)
 
   test('remove 25€ from title', () => {
     const input = {
@@ -158,35 +161,34 @@ describe('remove price from title', () => {
   })
 })
 
-describe('cleanUpSubject()', () => {
-  const tests = [
-    ['MYYTY - lol', 'lol'],
-    ['MYYTY - MYYTY - lol', 'lol'],
-    ['M: foo', 'foo'],
-    ['M: foo (100€)', 'foo'],
-    ['M: foo    ', 'foo'],
-    ['M: foo Helsinki', 'foo'],
-    ['M: foo helsinki', 'foo'],
-    ['M: foo  bar', 'foo bar'],
-    ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
-  ]
+const tests = [
+  ['MYYTY - lol', 'lol'],
+  ['MYYTY - MYYTY - lol', 'lol'],
+  ['M: foo', 'foo'],
+  ['M: foo (100€)', 'foo'],
+  ['M: foo    ', 'foo'],
+  ['M: foo Helsinki', 'foo'],
+  ['M: foo helsinki', 'foo'],
+  ['M: foo  bar', 'foo bar'],
+  ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
+  ['M: White 2½FatPro *Oulu*', 'M: White 2½FatPro'],
+]
 
-  runTestList(cleanUpSubject('Helsinki'), tests)
-})
+runTestList('cleanSubject()', cleanUpSubject('Helsinki'), tests)
 
 describe('location parsing', () => {
-  test('parseLocation()', () => {
-    const tests = [
-      ['hello Helsinki', 'Helsinki'],
-      ['hello HELSINKI', 'Helsinki'],
-      ['Paikkakunta (lisää myös otsikkoon): Kempele', 'Kempele'],
-      ['Paikkakunta\u00a0(lisää myös otsikkoon): Kempele', 'Kempele'],
-      ['Paikkakunta: maybecity yes', 'Maybecity'],
-      ['Paikkakunta:Jyväskylä', 'Jyväskylä'],
-    ]
+	const tests = [
+		['hello Helsinki', 'Helsinki'],
+		['hello HELSINKI', 'Helsinki'],
+		['Paikkakunta (lisää myös otsikkoon): Kempele', 'Kempele'],
+		['Paikkakunta\u00a0(lisää myös otsikkoon): Kempele', 'Kempele'],
+		['Paikkakunta: maybecity yes', 'Maybecity'],
+		['Paikkakunta:Jyväskylä', 'Jyväskylä'],
+		['Paikkakunta: Kittilä', 'Kittilä'],
+		['Paikkakunta : Pietarsaari', 'Pietarsaari']
+	]
 
-    runTestList(parseLocation, tests)
-  })
+	runTestList('parseLocation()', parseLocation, tests)
 
   test('Paikkakunta: espoo, not in title', () => {
     const input = {

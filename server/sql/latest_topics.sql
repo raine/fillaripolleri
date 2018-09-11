@@ -8,7 +8,6 @@ SELECT t.guid,
   JOIN topic_snapshot ts
     ON ts.guid = t.guid
  ${where:raw}
---  AND t.category_id = 54
  GROUP BY t.guid
  ORDER BY guid DESC
  LIMIT 50;

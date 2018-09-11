@@ -23,15 +23,39 @@ const sanitizeTopicRow = R.pipe(
   dateToDateTime
 )
 
+const whereSubjectLike = (str) =>
+  pgp.as.format('subject ILIKE $1', [`%${str}%`])
+
+const whereGuidIs = (id) =>
+  pgp.as.format('t.guid = $1', id)
+
+const whereGuidLt = (id) =>
+  pgp.as.format('t.guid < $1', id)
+
+const whereCategoryIdEq = (category) =>
+  pgp.as.format('t.category_id = $1', category)
+
+const and = (conds) =>
+  conds.filter(x => x).join(' AND ')
+
+const formatWhere = (conds) =>
+  conds ? `WHERE ${conds}` : ''
+
 router.get(
   '/',
   asyncRoute((req, res, next) => {
     const search = req.query.s
+    const category = req.query.category
+    const afterId = req.query.after_id
     const id = req.query.id
     const query = sql('latest_topics.sql')
-    const where = 
-      search ? pgp.as.format('WHERE subject ILIKE $1', [`%${search}%`]) :
-      id     ? pgp.as.format('WHERE t.guid = $1', [id]) : ''
+    const where = formatWhere(
+      and([
+        search   ? whereSubjectLike(search)    : null,
+        category ? whereCategoryIdEq(category) : null,
+        afterId  ? whereGuidLt(afterId)        : null
+      ])
+    )
 
     return db
       .any(query, { where })
@@ -39,9 +63,9 @@ router.get(
         R.map(
           R.pipe(
             sanitizeTopicRow,
-            R.tap(t => log.debug(t, 'processing topic')),
+            // R.tap(t => log.debug(t, 'processing topic')),
             processTopic,
-            R.tap(t => log.debug(t, 'processed topic'))
+            // R.tap(t => log.debug(t, 'processed topic'))
           )
         )
       )

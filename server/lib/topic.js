@@ -61,7 +61,7 @@ export const removePrice = removePatterns([
 export const parsePrice = R.pipe(
   R.replace(/\u00a0/g, ' '),
   tryPatterns([
-    /(?:Hintapyyntö|Hinta|Hp):?\s?(\d+)\s?(?:€|e|euroa|eur)?/,
+    /(?:Hintapyyntö|Hinta|Hp):?\s?(\d+)\s?(?:€|e|euroa|eur)?/i,
     /(\d+),-\B/, // 7,-
     /(\d+)\s?€/,
     /(\d+) euroa/i,
@@ -80,10 +80,10 @@ export const cleanUpSubject = (location) =>
     removeSellingPrefix,
     removePrice,
     location
-      ? remove(new RegExp(`\\b${location}`, 'i'))
+      ? remove(new RegExp(`\\b${location}`, 'iu'))
       : R.identity,
     location && locationToAbbrev[location]
-      ? remove(new RegExp(`\\b${locationToAbbrev[location]}`, 'i'))
+      ? remove(new RegExp(`\\b${locationToAbbrev[location]}`, 'iu'))
       : R.identity,
     R.replace(/\s\s+/g, ' '),
     trimSpecial,
@@ -95,16 +95,16 @@ const capitalize = (str) =>
 
 // no \\b after {x} because ä in Jyväskylä is unicode and word boundaries don't
 // work with unicode
-const locationsRegex = new RegExp(locations.map(x => `\\b${x}`).join('|'), 'i')
+const locationsRegex = new RegExp(locations.map(x => `\\b${x}`).join('|'), 'iu')
 const abbrevs = Object.keys(abbrevToLocation)
-const abbrevsRegex = new RegExp(abbrevs.map(x => `\\b${x}\\b`).join('|'), 'i')
+const abbrevsRegex = new RegExp(abbrevs.map(x => `\\b${x}\\b`).join('|'), 'iu')
 
 const matchGetHead = R.curry((pat, str) => {
   const m = str.match(pat)
   return m ? m[0] : null
 })
 
-export const parseLocation = R.pipe(
+export const parseLocation = (loc) => R.pipe(
   R.replace(/\u00a0/g, ' '),
   tryFns([
     matchGetHead(locationsRegex),
@@ -113,12 +113,12 @@ export const parseLocation = R.pipe(
       return abbrev ? abbrevToLocation[abbrev.toUpperCase()] : null
     },
     tryPatterns([
-      /Paikkakunta \(lisää myös otsikkoon\):\s?(\w{3,})/,
-      /Paikkakunta(?<! \(lisää myös otsikkoon\)):\s?(\w{3,})/
+      /Paikkakunta \(lisää myös otsikkoon\):\s?(\p{L}{3,})/u,
+      /Paikkakunta\s?(?<!\(lisää myös otsikkoon\)):\s?(\p{L}{3,})/u
     ])
   ]),
   R.when(Boolean, capitalize)
-)
+)(loc)
 
 export const processTopic = (topic) => {
   // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))
