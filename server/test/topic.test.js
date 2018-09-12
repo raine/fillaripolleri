@@ -171,7 +171,7 @@ const tests = [
   ['M: foo helsinki', 'foo'],
   ['M: foo  bar', 'foo bar'],
   ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
-  ['M: White 2½FatPro *Oulu*', 'M: White 2½FatPro'],
+  ['M: White 2½FatPro *Helsinki*', 'White 2½FatPro'],
 ]
 
 runTestList('cleanSubject()', cleanUpSubject('Helsinki'), tests)
