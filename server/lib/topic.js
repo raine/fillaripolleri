@@ -128,7 +128,7 @@ export const parseLocation = (loc) => R.pipe(
 
 export const processTopic = (topic) => {
   // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))
-  const { snapshots, guid, date, category } = topic
+  const { snapshots, guid, date, category, categoryId } = topic
   const snapshot = findLastUnsoldSnapshot(snapshots) || snapshots[0]
   const { link, subject, message } = snapshot
   const location = parseLocation(`${subject} ${message}`)
@@ -137,6 +137,7 @@ export const processTopic = (topic) => {
     id: guid,
     timestamp: date,
     category,
+    categoryId,
     link,
     title: cleanUpSubject(location)(subject),
     sold: lastSnapshotIsSold(snapshots),

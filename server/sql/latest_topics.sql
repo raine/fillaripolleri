@@ -1,6 +1,7 @@
 SELECT t.guid,
        min(t.date) AS date,
        min(tc.name) AS category,
+       min(tc.id) AS category_id,
        jsonb_agg(ts.*) AS snapshots
   FROM topic t
   JOIN topic_category tc

@@ -45,6 +45,7 @@ describe('price', () => {
       guid: 134148,
       date: '2018-09-03T21:05:31.000+03:00',
       category: 'Täysjousitetut 80-125mm',
+      categoryId: 1,
       snapshots: [
         {
           id: 124237,
@@ -59,6 +60,7 @@ describe('price', () => {
     expect(processTopic(input)).toEqual({
       id: 134148,
       category: 'Täysjousitetut 80-125mm',
+      categoryId: 1,
       link: 'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
       location: 'Kauhajoki',
       timestamp: '2018-09-03T21:05:31.000+03:00',
