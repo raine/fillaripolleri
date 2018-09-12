@@ -73,6 +73,12 @@ export const parsePrice = R.pipe(
   R.defaultTo(null)
 )
 
+const lastIsAWithUmlauts = (x) => x.slice(-1) === 'ä'
+const locationWordBoundary = (location) =>
+  `\\b${location}${lastIsAWithUmlauts(location) ? '' : '\\b'}`
+const caseInsensitiveRegex = (str) =>
+  new RegExp(str, 'iu')
+
 export const cleanUpSubject = (location) =>
   R.pipe(
     removeSold,
@@ -80,10 +86,10 @@ export const cleanUpSubject = (location) =>
     removeSellingPrefix,
     removePrice,
     location
-      ? remove(new RegExp(`\\b${location}`, 'iu'))
+      ? remove(caseInsensitiveRegex(locationWordBoundary(location)))
       : R.identity,
     location && locationToAbbrev[location]
-      ? remove(new RegExp(`\\b${locationToAbbrev[location]}`, 'iu'))
+      ? remove(caseInsensitiveRegex(locationWordBoundary(locationToAbbrev[location])))
       : R.identity,
     R.replace(/\s\s+/g, ' '),
     trimSpecial,
@@ -95,9 +101,9 @@ const capitalize = (str) =>
 
 // no \\b after {x} because ä in Jyväskylä is unicode and word boundaries don't
 // work with unicode
-const locationsRegex = new RegExp(locations.map(x => `\\b${x}`).join('|'), 'iu')
+const locationsRegex = new RegExp(locations.map(locationWordBoundary).join('|'), 'iu')
 const abbrevs = Object.keys(abbrevToLocation)
-const abbrevsRegex = new RegExp(abbrevs.map(x => `\\b${x}\\b`).join('|'), 'iu')
+const abbrevsRegex = new RegExp(abbrevs.map(locationWordBoundary).join('|'), 'iu')
 
 const matchGetHead = R.curry((pat, str) => {
   const m = str.match(pat)
