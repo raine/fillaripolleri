@@ -15,7 +15,8 @@ const removeSold = remove(/^myyty( - |:)?\s?/i)
 const trimSpecial = removePatterns([
   /^[\s!:_\-,]*/,
   /[\s!:_\-,/\*]*$/,
-  /\(\)/ // If removing price results in ()
+  /\(\)/, // If removing price/location results in ()
+  /\[\]/ // If removing price/location results in []
 ])
 
 const sortById = R.sortBy(L.get('id'))
@@ -92,6 +93,9 @@ export const cleanUpSubject = (location) =>
       ? remove(caseInsensitiveRegex(locationWordBoundary(locationToAbbrev[location])))
       : R.identity,
     R.replace(/\s\s+/g, ' '),
+    // Handle removed location that leaves something like (55cm, 2017, )
+    // Ideally location removal would match ", <location>"
+    R.replace(/,\s?\)/g, ')'),
     trimSpecial,
     R.trim
   )

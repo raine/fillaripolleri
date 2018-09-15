@@ -27,14 +27,12 @@ const whereSubjectLike = (str) =>
   pgp.as.format('subject ILIKE $1', [`%${str}%`])
 
 const whereGuidIs = (id) => pgp.as.format('t.guid = $1', id)
-
 const whereGuidLt = (id) => pgp.as.format('t.guid < $1', id)
 
 const whereCategoryIdEq = (category) =>
   pgp.as.format('t.category_id = $1', category)
 
 const and = (conds) => conds.filter((x) => x).join(' AND ')
-
 const formatWhere = (conds) => (conds ? `WHERE ${conds}` : '')
 
 const PAGE_SIZE = 50
