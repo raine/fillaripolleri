@@ -49,7 +49,8 @@ router.get(
       and([
         search ? whereSubjectLike(search) : null,
         category ? whereCategoryIdEq(category) : null,
-        afterId ? whereGuidLt(afterId) : null
+        afterId ? whereGuidLt(afterId) : null,
+        id ? whereGuidIs(id) : null
       ])
     )
 
