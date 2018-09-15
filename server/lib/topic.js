@@ -10,7 +10,7 @@ const remove = R.replace(R.__, '')
 const removePatterns = (patterns) => (str) =>
   R.reduce((acc, pat) => remove(pat, acc), str, patterns)
 
-const removeSellingPrefix = remove(/^m:|^myydään?|^myynnissä/i)
+const removeSellingPrefix = remove(/^m\s?:|^myydään?|^myynnissä/i)
 const removeSold = remove(/^myyty( - |:)?\s?/i)
 const trimSpecial = removePatterns([
   /^[\s!:_\-,]*/,
