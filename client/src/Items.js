@@ -31,7 +31,9 @@ const Items = ({ items, searchCategory, isLastPage }) => (
     {U.when(
       isLastPage,
       <div className={style.endOfResults}>
-        End of results
+        <span className={style.box}>
+          End of the list
+        </span>
       </div>
     )}
   </div>
