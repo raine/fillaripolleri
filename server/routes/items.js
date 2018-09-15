@@ -59,13 +59,16 @@ router.get(
       .then((topics) => {
         const init = R.take(PAGE_SIZE, topics)
         const isLastPage = topics.length < PAGE_SIZE
-        const items = R.map(
-          R.pipe(
-            sanitizeTopicRow,
-            // R.tap((t) => log.debug(t, 'processing topic')),
-            processTopic,
-            // R.tap((t) => log.debug(t, 'processed topic'))
-          )
+        const items = R.pipe(
+          R.map(
+            R.pipe(
+              sanitizeTopicRow,
+              // R.tap((t) => log.debug(t, 'processing topic')),
+              processTopic,
+              // R.tap((t) => log.debug(t, 'processed topic'))
+            )
+          ),
+          R.filter(L.get(['title', R.length, (x) => x >= 5]))
         )(init)
 
         res.json({ items, isLastPage })
