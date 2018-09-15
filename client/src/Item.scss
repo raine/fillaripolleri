@@ -57,3 +57,19 @@
     cursor: pointer;
   }
 }
+
+.sold {
+  span {
+    background: #f7a5a5;
+    color: fff;
+    border-radius: 15px;
+    padding: 0px 5px;
+    // text-shadow: 1px 1px 0px #ef7979;
+    text-shadow: 1px 1px 0px #c17c7c9c;
+    text-shadow: 1px 1px 0px #d06e6ed4;
+    text-shadow: 1px 1px 0px #d06e6e7a;
+    opacity: 0.85;
+    color: #fff;
+    text-transform: uppercase;
+  }
+}
