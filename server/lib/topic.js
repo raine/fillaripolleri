@@ -110,7 +110,7 @@ const matchGetHead = R.curry((pat, str) => {
   return m ? m[0] : null
 })
 
-export const parseLocation = (loc) => R.pipe(
+export const parseLocation = (str) => R.pipe(
   R.replace(/\u00a0/g, ' '),
   tryFns([
     matchGetHead(locationsRegex),
@@ -124,7 +124,7 @@ export const parseLocation = (loc) => R.pipe(
     ])
   ]),
   R.when(Boolean, capitalize)
-)(loc)
+)(str)
 
 export const processTopic = (topic) => {
   // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))

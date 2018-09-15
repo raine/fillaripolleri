@@ -14,13 +14,15 @@ const Search = ({ query, category }) => {
         value={query}
         placeholder="Hae"
       />
-      <U.Select
-        className={style.categorySelect}
-        value={category}>
+      <U.Select className={style.categorySelect} value={category}>
         <option value={''}>Kaikki osastot</option>
         {U.thru(
           categories,
-          R.map(({ id, name }) => <option key={id} value={id}>{name}</option>)
+          R.map(({ id, name }) => (
+            <option key={id} value={id}>
+              {name}
+            </option>
+          ))
         )}
       </U.Select>
     </div>

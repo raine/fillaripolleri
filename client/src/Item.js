@@ -13,22 +13,37 @@ const ONE_HOUR = 3600 * 1000
 const timeAgo = new TimeAgo('en-US')
 const parseDate = U.lift((str) => new Date(str))
 const formatDate = U.lift((date) => timeAgo.format(date, 'twitter'))
+const toLocaleString = U.lift((date) => date.toLocaleString())
 
-const Time = ({ isoDate }) => (
-  <time title={isoDate} dateTime={isoDate}>
-    {formatDate(parseDate(isoDate))}
-  </time>
-)
+const Time = ({ isoDate }) => {
+  const date = parseDate(isoDate)
+
+  return (
+    <time title={toLocaleString(date)} dateTime={isoDate}>
+      {formatDate(date)}
+    </time>
+  )
+}
 
 const isNew = R.pipe(
   parseDate,
   (x) => Date.now() - x.getTime() < ONE_HOUR
 )
 
-const Item = ({ title, category, timestamp, link, price, sold, location }) => (
+const Item = ({
+  searchCategory,
+  title,
+  category,
+  categoryId,
+  timestamp,
+  link,
+  price,
+  sold,
+  location
+}) => (
   <div className={style.item}>
     <div className={style.title}>
-      <a href={link} rel="noreferrer">
+      <a href={link} rel="noreferrer" target="_blank">
         {title}
       </a>
     </div>
@@ -42,7 +57,12 @@ const Item = ({ title, category, timestamp, link, price, sold, location }) => (
         >
           <Time isoDate={timestamp} />
         </li>
-        <li className={style.category}>{category}</li>
+        <li
+          className={style.category}
+          onClick={U.doSet(searchCategory, categoryId)}
+        >
+          {category}
+        </li>
         {U.when(price, <li className={style.price}>{price}€</li>)}
         {U.when(location, <li className={style.location}>{location}</li>)}
       </ul>

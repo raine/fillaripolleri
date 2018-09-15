@@ -6,24 +6,33 @@ import style from './Items.scss'
 
 import Item from './Item'
 
-const Items = ({ items }) => (
+const Items = ({ items, searchCategory, isLastPage }) => (
   <div className={style.items}>
     {U.mapElemsWithIds(
       'id',
       (item, id) => {
-        const { category, title, timestamp, link, price, sold, location } = U.destructure(item)
+        const { category, categoryId, title, timestamp, link, price, sold, location } = U.destructure(item)
         return <Item key={id} {...{
           id,
           category,
+          categoryId,
           title,
           timestamp,
           link,
           price,
           sold,
-          location
+          location,
+
+          searchCategory
         }} />
       },
       items
+    )}
+    {U.when(
+      isLastPage,
+      <div className={style.endOfResults}>
+        End of results
+      </div>
     )}
   </div>
 )

@@ -50,3 +50,10 @@
 .timestamp.is-new {
   color: #6cb569;
 }
+
+.category {
+  &:hover {
+    color: lighten(#212528, 20%);
+    cursor: pointer;
+  }
+}

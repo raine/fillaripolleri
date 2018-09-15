@@ -20,6 +20,8 @@ CLOSED: [2018-09-06 Thu 18:37]
 ** TODO Show sold status in UI
 ** TODO Improve search by tokenizing topics
 "lux" should not match "flux"
-** TODO Implement infinite scrolling
-** TODO Allow searching for category
+** STARTED Implement infinite scrolling
+** DONE Allow searching for category
+CLOSED: [2018-09-12 Wed 21:32]
 ** TODO Try tf-idf
+** TODO Handle empty titles

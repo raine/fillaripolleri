@@ -11,15 +11,15 @@ const hasAbort = typeof AbortController !== 'undefined'
 const fetchJSON = hasAbort
   ? (path, query = {}, params = {}) =>
       U.fromPromise(() => {
+        const url = API_URL + path + queryStringify(R.pickBy(Boolean, query))
         const controller = new AbortController()
+        console.log(`fetch start ${url}`)
+
         return {
-          ready: fetch(
-            API_URL + path + queryStringify(R.pickBy(Boolean, query)),
-            {
-              ...params,
-              signal: controller.signal
-            }
-          ).then((res) => res.json()),
+          ready: fetch(url, {
+            ...params,
+            signal: controller.signal
+          }).then((res) => console.log('fetch end  ') || res.json()),
           abort() {
             controller.abort()
           }

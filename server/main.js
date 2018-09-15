@@ -10,7 +10,7 @@ import expressPinoLogger from 'express-pino-logger'
 const app = express()
 const port = config.PORT
 
-app.use(expressPinoLogger({ logger: log }))
+// app.use(expressPinoLogger({ logger: log }))
 app.use(cors())
 app.use('/items', itemsR)
 

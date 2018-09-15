@@ -11,4 +11,4 @@ SELECT t.guid,
  ${where:raw}
  GROUP BY t.guid
  ORDER BY guid DESC
- LIMIT 50;
+ LIMIT ${limit};

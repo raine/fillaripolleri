@@ -10,25 +10,23 @@ import { location, scroll } from './window'
 import searchParamsL from './search-params'
 import App from './App'
 
-const params = U.view(['search', searchParamsL], location)
 const items = U.atom([])
 const state = U.atom({
-  searchQuery: '',
-  category: '',
-  lastPage: false
+  search: {
+    query: '',
+    category: ''
+  },
+  isLastPage: false
 })
 
 state.log()
 
 ReactDOM.render(
-  <React.Fragment>
-    <App
-      items={items}
-      params={params}
-      searchQuery={U.view('searchQuery', state)}
-      category={U.view('category', state)}
-      lastPage={U.view('lastPage', state)}
-    />
-  </React.Fragment>,
+  <App
+    items={items}
+    search={U.view('search', state)}
+    category={U.view('category', state)}
+    isLastPage={U.view('isLastPage', state)}
+  />,
   document.getElementById('root')
 )

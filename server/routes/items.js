@@ -26,20 +26,18 @@ const sanitizeTopicRow = R.pipe(
 const whereSubjectLike = (str) =>
   pgp.as.format('subject ILIKE $1', [`%${str}%`])
 
-const whereGuidIs = (id) =>
-  pgp.as.format('t.guid = $1', id)
+const whereGuidIs = (id) => pgp.as.format('t.guid = $1', id)
 
-const whereGuidLt = (id) =>
-  pgp.as.format('t.guid < $1', id)
+const whereGuidLt = (id) => pgp.as.format('t.guid < $1', id)
 
 const whereCategoryIdEq = (category) =>
   pgp.as.format('t.category_id = $1', category)
 
-const and = (conds) =>
-  conds.filter(x => x).join(' AND ')
+const and = (conds) => conds.filter((x) => x).join(' AND ')
 
-const formatWhere = (conds) =>
-  conds ? `WHERE ${conds}` : ''
+const formatWhere = (conds) => (conds ? `WHERE ${conds}` : '')
+
+const PAGE_SIZE = 50
 
 router.get(
   '/',
@@ -51,26 +49,27 @@ router.get(
     const query = sql('latest_topics.sql')
     const where = formatWhere(
       and([
-        search   ? whereSubjectLike(search)    : null,
+        search ? whereSubjectLike(search) : null,
         category ? whereCategoryIdEq(category) : null,
-        afterId  ? whereGuidLt(afterId)        : null
+        afterId ? whereGuidLt(afterId) : null
       ])
     )
 
     return db
-      .any(query, { where })
-      .then(
-        R.map(
+      .any(query, { where, limit: PAGE_SIZE + 1 })
+      .then((topics) => {
+        const init = R.take(PAGE_SIZE, topics)
+        const isLastPage = topics.length < PAGE_SIZE
+        const items = R.map(
           R.pipe(
             sanitizeTopicRow,
-            // R.tap(t => log.debug(t, 'processing topic')),
+            // R.tap((t) => log.debug(t, 'processing topic')),
             processTopic,
-            // R.tap(t => log.debug(t, 'processed topic'))
+            // R.tap((t) => log.debug(t, 'processed topic'))
           )
-        )
-      )
-      .then((items) => {
-        res.json(items)
+        )(init)
+
+        res.json({ items, isLastPage })
       })
   })
 )
