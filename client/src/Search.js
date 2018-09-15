@@ -12,10 +12,10 @@ const Search = ({ query, category }) => {
         className={style.search}
         type="text"
         value={query}
-        placeholder="Hae"
+        placeholder="Type to search"
       />
       <U.Select className={style.categorySelect} value={category}>
-        <option value={''}>Kaikki osastot</option>
+        <option value={''}>All categories</option>
         {U.thru(
           categories,
           R.map(({ id, name }) => (
