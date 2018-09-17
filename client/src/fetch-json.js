@@ -5,7 +5,7 @@ import searchParamsL from './search-params'
 
 const queryStringify = L.getInverse(searchParamsL)
 
-const API_URL = 'http://localhost:3000'
+const API_URL = process.env.API_URL
 
 const hasAbort = typeof AbortController !== 'undefined'
 const fetchJSON = hasAbort
