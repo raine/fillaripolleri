@@ -6,7 +6,7 @@
   "scripts": {
     "start": "parcel index.html",
     "clean": "rm -rf dist",
-    "build": "yarn clean && parcel build index.html"
+    "build": "yarn clean && parcel build --no-source-maps index.html"
   },
   "devDependencies": {
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
