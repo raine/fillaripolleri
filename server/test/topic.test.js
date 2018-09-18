@@ -21,6 +21,7 @@ describe('price', () => {
     ['Hintapyyntö: 20 euroa', 20],
     ['Hintapyyntö: 20 eur', 20],
     ['Hintapyyntö: 20€', 20],
+    ['Hintapyyntö: 4 000 €', 4000],
     ['Hintapyyntö: 20', 20],
     // ['Hintapyyntö: 1.200€', 1200],
     ['Hinta: 20 €', 20],

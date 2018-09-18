@@ -62,7 +62,7 @@ export const removePrice = removePatterns([
 export const parsePrice = R.pipe(
   R.replace(/\u00a0/g, ' '),
   tryPatterns([
-    /(?:Hintapyyntö|Hinta|Hp):?\s?(\d+)\s?(?:€|e|euroa|eur)?/i,
+    /(?:Hintapyyntö|Hinta|Hp):?\s?(\d?[\s\.]?\d+)\s?(?:€|e|euroa|eur)?/i,
     /(\d+),-\B/, // 7,-
     /(\d+)\s?€/,
     /(\d+) euroa/i,
@@ -70,6 +70,7 @@ export const parsePrice = R.pipe(
     // Match '2e' without matching '.2e' or 'f2e'
     /(?<!\.|\w)(\d+)e/
   ]),
+  R.when((x) => x, remove(' ')),
   R.when((x) => x, parseInt),
   R.defaultTo(null)
 )
