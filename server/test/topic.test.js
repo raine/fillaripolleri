@@ -1,5 +1,12 @@
 import { readFileSync } from 'fs'
-import { parsePrice, processTopic, removePrice, cleanUpSubject, parseLocation } from '../lib/topic'
+import {
+  parsePrice,
+  processTopic,
+  removePrice,
+  cleanUpSubject,
+  parseLocation,
+  parseFrameSize
+} from '../lib/topic'
 
 const readFile = (file) => readFileSync(file, 'utf8')
 const readTestHtml = (id) => readFile(`${__dirname}/data/${id}.html`)
@@ -15,32 +22,7 @@ const runTestList = (fnName, fn, tests) =>
     })
   })
 
-describe('price', () => {
-  const tests = [
-    ['Hp:480 €', 480],
-    ['Hintapyyntö: 20 euroa', 20],
-    ['Hintapyyntö: 20 eur', 20],
-    ['Hintapyyntö: 20€', 20],
-    ['Hintapyyntö: 4 000 €', 4000],
-    ['Hintapyyntö: 20', 20],
-    // ['Hintapyyntö: 1.200€', 1200],
-    ['Hinta: 20 €', 20],
-    ['Hinta: 20 e', 20],
-    ['Hp: 20 €', 20],
-    ['HP: 370', 370],
-    ['x20€', 20],
-    ['20 €', 20],
-    [' 20e', 20],
-    ['20e', 20],
-    ['.20e', null],
-    ['e20e', null],
-    ['7,-', 7],
-    [' 200 euroa', 200],
-    [' 200 Euros', 200]
-  ]
-
-  runTestList('parsePrice()', parsePrice, tests)
-
+describe('processTopic', () => {
   test('hintapyyntö', () => {
     const input = {
       guid: 134148,
@@ -128,18 +110,6 @@ describe('price', () => {
       title: 'Dawes Blowfish pyörä 16", Uusimaa'
     })
   })
-})
-
-describe('remove price from title', () => {
-  const tests = [
-    ['foo 20 e', 'foo '],
-    ['foo 20 €', 'foo '],
-    ['foo 20€', 'foo '],
-    ['foo hinta 20 euroa', 'foo  '],
-    ['foo 20 euroa', 'foo ']
-  ]
-
-  runTestList('parsePrice()', removePrice, tests)
 
   test('remove 25€ from title', () => {
     const input = {
@@ -148,11 +118,8 @@ describe('remove price from title', () => {
       category: 'Kengät',
       snapshots: [
         {
-          id: 35611,
-          guid: 131395,
-          link: 'https://www.fillaritori.com/topic/131395-myyty-shimano-r106-maantiekeng%C3%A4tklossit-44-25%E2%82%AC/',
-          message: readTestHtml(35611),
           subject: 'Shimano R106 maantiekengät+klossit (44) 25€',
+          message: '',
           createdAt: '2018-08-17T13:15:00.296+03:00'
         }
       ]
@@ -162,39 +129,6 @@ describe('remove price from title', () => {
       title: 'Shimano R106 maantiekengät+klossit (44)'
     })
   })
-})
-
-const tests = [
-  ['MYYTY - lol', 'lol'],
-  ['MYYTY - MYYTY - lol', 'lol'],
-  ['M: foo', 'foo'],
-  ['M: foo (100€)', 'foo'],
-  ['M: foo    ', 'foo'],
-  ['M: foo Helsinki', 'foo'],
-  ['M: foo helsinki', 'foo'],
-  ['M: foo  bar', 'foo bar'],
-  ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
-  ['M: White 2½FatPro *Helsinki*', 'White 2½FatPro'],
-  ['M: White 2½FatPro Helsinkin', 'White 2½FatPro Helsinkin'],
-  ['Trek tyttöjen pyörä [Helsinki]', 'Trek tyttöjen pyörä'],
-  ['Felt F65x (55cm, 2017, Helsinki)', 'Felt F65x (55cm, 2017)']
-]
-
-runTestList('cleanSubject()', cleanUpSubject('Helsinki'), tests)
-
-describe('location parsing', () => {
-	const tests = [
-		['hello Helsinki', 'Helsinki'],
-		['hello HELSINKI', 'Helsinki'],
-		['Paikkakunta (lisää myös otsikkoon): Kempele', 'Kempele'],
-		['Paikkakunta\u00a0(lisää myös otsikkoon): Kempele', 'Kempele'],
-		['Paikkakunta: maybecity yes', 'Maybecity'],
-		['Paikkakunta:Jyväskylä', 'Jyväskylä'],
-		['Paikkakunta: Kittilä', 'Kittilä'],
-		['Paikkakunta : Pietarsaari', 'Pietarsaari']
-	]
-
-	runTestList('parseLocation()', parseLocation, tests)
 
   test('Paikkakunta: espoo, not in title', () => {
     const input = {
@@ -309,7 +243,62 @@ describe('location parsing', () => {
       title: 'Santa Cruz 5010 CC 27,5" koko M',
     })
   })
-
-  // test pietarsaari
-  // https://www.fillaritori.com/topic/133135-myyty-rapha-core-softshelltakki-l/
 })
+
+runTestList('parsePrice()', parsePrice, [
+  ['Hp:480 €', 480],
+  ['Hintapyyntö: 20 euroa', 20],
+  ['Hintapyyntö: 20 eur', 20],
+  ['Hintapyyntö: 20€', 20],
+  ['Hintapyyntö: 4 000 €', 4000],
+  ['Hintapyyntö: 20', 20],
+  // ['Hintapyyntö: 1.200€', 1200],
+  ['Hinta: 20 €', 20],
+  ['Hinta: 20 e', 20],
+  ['Hp: 20 €', 20],
+  ['HP: 370', 370],
+  ['x20€', 20],
+  ['20 €', 20],
+  [' 20e', 20],
+  ['20e', 20],
+  ['.20e', null],
+  ['e20e', null],
+  ['7,-', 7],
+  [' 200 euroa', 200],
+  [' 200 Euros', 200]
+])
+
+runTestList('removePrice()', removePrice, [
+  ['foo 20 e', 'foo '],
+  ['foo 20 €', 'foo '],
+  ['foo 20€', 'foo '],
+  ['foo hinta 20 euroa', 'foo  '],
+  ['foo 20 euroa', 'foo ']
+])
+
+runTestList('cleanSubject()', cleanUpSubject('Helsinki'), [
+  ['MYYTY - lol', 'lol'],
+  ['MYYTY - MYYTY - lol', 'lol'],
+  ['M: foo', 'foo'],
+  ['M: foo (100€)', 'foo'],
+  ['M: foo    ', 'foo'],
+  ['M: foo Helsinki', 'foo'],
+  ['M: foo helsinki', 'foo'],
+  ['M: foo  bar', 'foo bar'],
+  ['28" Shining A-M1 622x19 etukiekko', '28" Shining A-M1 622x19 etukiekko'],
+  ['M: White 2½FatPro *Helsinki*', 'White 2½FatPro'],
+  ['M: White 2½FatPro Helsinkin', 'White 2½FatPro Helsinkin'],
+  ['Trek tyttöjen pyörä [Helsinki]', 'Trek tyttöjen pyörä'],
+  ['Felt F65x (55cm, 2017, Helsinki)', 'Felt F65x (55cm, 2017)']
+])
+
+runTestList('parseLocation()', parseLocation, [
+  ['hello Helsinki', 'Helsinki'],
+  ['hello HELSINKI', 'Helsinki'],
+  ['Paikkakunta (lisää myös otsikkoon): Kempele', 'Kempele'],
+  ['Paikkakunta\u00a0(lisää myös otsikkoon): Kempele', 'Kempele'],
+  ['Paikkakunta: maybecity yes', 'Maybecity'],
+  ['Paikkakunta:Jyväskylä', 'Jyväskylä'],
+  ['Paikkakunta: Kittilä', 'Kittilä'],
+  ['Paikkakunta : Pietarsaari', 'Pietarsaari']
+])
