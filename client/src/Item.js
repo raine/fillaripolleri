@@ -39,7 +39,8 @@ const Item = ({
   link,
   price,
   sold,
-  location
+  location,
+  frameSize
 }) => (
   <div className={style.item}>
     <div className={style.title}>
@@ -65,6 +66,7 @@ const Item = ({
         </li>
         {U.when(price, <li className={style.price}>{price}€</li>)}
         {U.when(location, <li className={style.location}>{location}</li>)}
+        {U.when(frameSize, <li className={style.frameSize}>{frameSize}</li>)}
         {U.when(sold, <li className={style.sold}><span>sold</span></li>)}
       </ul>
     </div>

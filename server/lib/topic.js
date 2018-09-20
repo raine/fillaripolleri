@@ -1,7 +1,11 @@
 import * as R from 'ramda'
 import * as L from 'partial.lenses'
 import log from './logger'
+import * as nearley from 'nearley'
+import * as frameSizeGrammar from  '../grammar/frame-size'
+import TurndownService from 'turndown'
 
+const turndownService = new TurndownService()
 const locations = require('../data/cities.json')
 const abbrevToLocation = require('../data/cities-abbreviations.json')
 const locationToAbbrev = R.invertObj(abbrevToLocation)
@@ -131,12 +135,26 @@ export const parseLocation = (str) => R.pipe(
   R.when(Boolean, capitalize)
 )(str)
 
+export const parseFrameSize = (mkdMessage) => {
+  const parser = new nearley.Parser(nearley.Grammar.fromCompiled(frameSizeGrammar))
+  parser.feed(mkdMessage)
+  return parser.results[0]
+}
+
+const FRAME_SIZE_CATEGORIES = [69, 55, 54, 56, 57, 63, 61, 62, 8, 74]
+
 export const processTopic = (topic) => {
   // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))
+  // require("fs").writeFileSync(`${guid}.md`, mkdMessage, 'utf8')
   const { snapshots, guid, date, category, categoryId } = topic
   const snapshot = findLastUnsoldSnapshot(snapshots) || snapshots[0]
   const { link, subject, message } = snapshot
   const location = parseLocation(`${subject} ${message}`)
+  let frameSize = null
+  if (FRAME_SIZE_CATEGORIES.includes(categoryId)) {
+    const mkdMessage = turndownService.turndown(message)
+    frameSize = parseFrameSize(mkdMessage)
+  }
 
   return {
     id: guid,
@@ -144,6 +162,7 @@ export const processTopic = (topic) => {
     category,
     categoryId,
     link,
+    frameSize,
     title: cleanUpSubject(location)(subject),
     sold: lastSnapshotIsSold(snapshots),
     price: parsePrice(message),

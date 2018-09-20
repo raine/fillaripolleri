@@ -22,7 +22,7 @@ const runTestList = (fnName, fn, tests) =>
     })
   })
 
-describe('processTopic', () => {
+describe('processTopic()', () => {
   test('hintapyyntö', () => {
     const input = {
       guid: 134148,
@@ -44,6 +44,7 @@ describe('processTopic', () => {
       id: 134148,
       category: 'Täysjousitetut 80-125mm',
       categoryId: 1,
+      frameSize: null,
       link: 'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
       location: 'Kauhajoki',
       timestamp: '2018-09-03T21:05:31.000+03:00',
@@ -57,6 +58,7 @@ describe('processTopic', () => {
     const input = {
       guid: 134116,
       date: '2018-09-03T18:32:01.000+03:00',
+      categoryId: 1,
       category: 'Muut',
       snapshots: [
         {
@@ -72,7 +74,9 @@ describe('processTopic', () => {
 
     expect(processTopic(input)).toEqual({
       category: 'Muut',
+      categoryId: 1,
       id: 134116,
+      frameSize: null,
       link: 'https://www.fillaritori.com/topic/134116-tacx-flux-treineri/',
       location: 'Hämeenlinna',
       price: 480,
@@ -87,6 +91,7 @@ describe('processTopic', () => {
       guid: 134132,
       date: '2018-09-03T19:54:58.000+03:00',
       category: 'Lasten',
+      categoryId: 1,
       snapshots: [
         {
           id: 124207,
@@ -101,6 +106,8 @@ describe('processTopic', () => {
 
     expect(processTopic(input)).toEqual({
       category: 'Lasten',
+      categoryId: 1,
+      frameSize: null,
       id: 134132,
       link: 'https://www.fillaritori.com/topic/134132-dawes-blowfish-py%C3%B6r%C3%A4-16-helsinki-uusimaa/',
       location: 'Helsinki',
@@ -302,3 +309,30 @@ runTestList('parseLocation()', parseLocation, [
   ['Paikkakunta: Kittilä', 'Kittilä'],
   ['Paikkakunta : Pietarsaari', 'Pietarsaari']
 ])
+
+// describe.only('foo', () => {
+runTestList('parseFrameSize()', parseFrameSize, [
+  ["blah\nRungon koko (lisää myös otsikkoon): 54 cm\nblah", '54cm'],
+  ["blah\nRungon koko (lisää myös otsikkoon): 52cm\nblah", '52cm'],
+  ["blah\nRungon koko (lisää myös otsikkoon): 59\nblah", '59cm'],
+  ["blah\nRungon koko 54\nblah", '54cm'],
+  ["blah\nRungon koko (lisää myös otsikkoon): L\nblah", 'L'],
+  ["blah\nFrame Size: 55cm\nblah", '55cm'],
+  ["blah\nfoo L-Size bar\nblah", 'L'],
+  ["blah\nKoko 54\nblah", '54cm'],
+  ["blah\nRunkokoko 54cm\nblah", '54cm'],
+  ["blah\nRungon koko :58 cm, sopii yli\nblah", '58cm'],
+  ["blah\nRungon koko: 54\nblah", '54cm'],
+  ["blah\nkokoa 47 cm\nblah", '47cm'],
+  ["blah\nRunko Hiilikuitu koko s \nblah", 'S'],
+  ["blah\nWilier Izoard Ultegra hiilikuitu S koko -vm 2009\nblah", 'S'],
+  ["blah\nRunko 55 cm\nblah", '55cm'],
+  ["blah\nRunkokoko on 56cm melko tavanomaisella\nblah", '56cm'],
+  ["blah\nRunko hiilikuitua, koko 58, sopii n. 184-200 pituisille\nblah", '58cm'],
+  ["blah\nRungon koko: 55,5/L\nblah", '55cm'],
+  ["blah\nCarbon frame, size 55. 2016. \nblah", '55cm'],
+  ["blah\nFSA Gossamer kammet. Koko XL sopii n 185 blah", 'XL'],
+  ["blah\n51cm rungolla\n", '51cm'],
+  // ["blah\nMoser 111 Ultegra hiilikuitu 56 cm -vm 2013 \nblah", '56cm'],
+])
+// })
