@@ -5,16 +5,18 @@
 main -> any frame_size_candidate _ any {% R.nth(1) %}
 
 frame_size_candidate ->
-    frame_size_prefix  _ ":":? _ frame_size    {% R.last %}
+    frame_size_prefix sep _ frame_size         {% R.last %}
   | frame_size_tshirt "-size"i                 {% R.head %}
   | frame_size_tshirt _ "koko"i                {% R.head %}
   | frame_size_number "cm" _ frame_size_suffix {% R.pipe(R.take(2), R.join('')) %}
 # | frame_size_number _ "cm"i
 
+sep -> (_ ":") | __
+
 frame_size_prefix ->
     "Rungon koko"i
   | "Rungon koko (lisää myös otsikkoon)"i
-  | "Runko"i "koko"i:?
+  | "Runkokoko"i
   | "Rungonkoko"i _ "on"i | "Runkokoko"i _ "on"i
   | "Runko"i
   | "Koko"i "a":?
@@ -55,3 +57,5 @@ frame_size_tshirt -> (
 any -> (. | "\n"):* {% nuller %}
  
 _ -> [\s]:* {% (d) => null %}
+
+__ -> " " {% (d) => null %}
