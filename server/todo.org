@@ -16,12 +16,17 @@ CLOSED: [2018-09-06 Thu 18:37]
 ** DONE Trim special characters and whitespace from subject
   There should be no dangling special characters or whitespace at either start
   or end after city/price/size have been parsed and removed
-** TODO Try parsing size
-** TODO Show sold status in UI
+** DONE Try parsing size
+CLOSED: [2018-09-22 Sat 21:54]
+** DONE Show sold status in UI
+CLOSED: [2018-09-22 Sat 21:54]
 ** TODO Improve search by tokenizing topics
 "lux" should not match "flux"
-** STARTED Implement infinite scrolling
+** DONE Implement infinite scrolling
+CLOSED: [2018-09-22 Sat 21:54]
 ** DONE Allow searching for category
 CLOSED: [2018-09-12 Wed 21:32]
 ** TODO Try tf-idf
-** TODO Handle empty titles
+** DONE Handle empty titles
+CLOSED: [2018-09-22 Sat 21:54]
+** TODO Make enum for t-shirt frame sizes

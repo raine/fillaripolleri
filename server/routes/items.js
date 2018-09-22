@@ -3,25 +3,12 @@ import * as L from 'partial.lenses'
 import * as R from 'ramda'
 import { db, pgp, sql } from '../lib/db'
 import asyncRoute from '../lib/async-route'
-import { processTopic, findLastUnsoldSnapshot } from '../lib/topic'
-import camelCase from 'lodash.camelcase'
-import { DateTime } from 'luxon'
+import { processTopic } from '../lib/topic'
 import log from '../lib/logger'
 
 const router = new Router()
 
-const camelizeKeys = L.modify(L.keys, camelCase)
-const snapshotsL = ['snapshots', L.elems]
 // const removeSnapshotMessages = L.set([snapshotsL, 'message'], '[REDACTED]')
-const camelizeSnapshotKeys = L.modify(snapshotsL, camelizeKeys)
-const parseSnapshotDates = L.modify([snapshotsL, 'createdAt'], DateTime.fromISO)
-const dateToDateTime = L.modify('date', DateTime.fromJSDate)
-
-const sanitizeTopicRow = R.pipe(
-  camelizeSnapshotKeys,
-  parseSnapshotDates,
-  dateToDateTime
-)
 
 const whereSubjectLike = (str) =>
   pgp.as.format('subject ILIKE $1', [`%${str}%`])

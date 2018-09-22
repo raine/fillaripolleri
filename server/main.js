@@ -3,9 +3,8 @@ import express from 'express'
 import cors from 'cors'
 import log from './lib/logger'
 import config from './lib/config'
-import { db, sql } from './lib/db'
+import { listen } from './lib/db'
 import itemsR from './routes/items'
-import expressPinoLogger from 'express-pino-logger'
 
 const app = express()
 const port = config.PORT
@@ -32,6 +31,22 @@ async function main() {
   app.listen(port, () => {
     log.info(`listening at ${port}`)
   })
+
+  const s = await listen()
+  s.log()
 }
 
+
+// const fromNodeStream = require('kefir-node-stream')
+
+// notificationS.log()
+// fromNodeStream(s)
+
 main()
+  .catch(err => {
+    log.error(err)
+    process.exitCode = 1
+  })
+
+// you can also use pgp.as.format(query, values, options)
+// to format queries properly, via pg-promise;

@@ -3,9 +3,11 @@ import * as L from 'partial.lenses'
 import log from './logger'
 import * as nearley from 'nearley'
 import * as frameSizeGrammar from  '../grammar/frame-size'
-import TurndownService from 'turndown'
+import fs from 'fs'
+import camelCase from 'lodash.camelcase'
+import { DateTime } from 'luxon'
+import sanitizeHtml from 'sanitize-html'
 
-const turndownService = new TurndownService()
 const locations = require('../data/cities.json')
 const abbrevToLocation = require('../data/cities-abbreviations.json')
 const locationToAbbrev = R.invertObj(abbrevToLocation)
@@ -84,7 +86,6 @@ const locationWordBoundary = (location) =>
   `\\b${location}${lastIsAWithUmlauts(location) ? '' : '\\b'}`
 const caseInsensitiveRegex = (str) =>
   new RegExp(str, 'iu')
-
 export const cleanUpSubject = (location) =>
   R.pipe(
     removeSold,
@@ -135,26 +136,35 @@ export const parseLocation = (str) => R.pipe(
   R.when(Boolean, capitalize)
 )(str)
 
-export const parseFrameSize = (mkdMessage) => {
+export const parseFrameSize = (sanitizedMessage) => {
   const parser = new nearley.Parser(nearley.Grammar.fromCompiled(frameSizeGrammar))
-  parser.feed(mkdMessage)
+  try {
+    parser.feed(sanitizedMessage)
+  } catch (err) {
+    log.error(err, 'error parsing sanitized message')
+    fs.writeFileSync(`tmp/${Date.now()}.txt`, sanitizedMessage, 'utf8')
+    return null
+  }
   return parser.results[0]
 }
 
-const FRAME_SIZE_CATEGORIES = [69, 55, 54, 56, 57, 63, 61, 62, 8, 74]
+const frameSizeResultToDbSchema = ({ type, value }) => ({
+  frameSizeTshirt: type === 't-shirt' ? value : null,
+  frameSizeCm: type === 'cm' ? value : null
+})
 
+const sanitizeMsg = R.pipe(
+  remove(/\u2028/g),
+  sanitizeHtml
+)
+
+const FRAME_SIZE_CATEGORIES = [69, 55, 54, 56, 57, 63, 61, 62, 8, 74]
 export const processTopic = (topic) => {
-  // console.log(JSON.stringify(L.set(['snapshots', L.elems, 'message'], null, topic), null, 4))
-  // require("fs").writeFileSync(`${guid}.md`, mkdMessage, 'utf8')
   const { snapshots, guid, date, category, categoryId } = topic
   const snapshot = findLastUnsoldSnapshot(snapshots) || snapshots[0]
   const { link, subject, message } = snapshot
   const location = parseLocation(`${subject} ${message}`)
-  let frameSize = null
-  if (FRAME_SIZE_CATEGORIES.includes(categoryId)) {
-    const mkdMessage = turndownService.turndown(message)
-    frameSize = parseFrameSize(mkdMessage)
-  }
+  const sanitizedMessage = sanitizeMsg(message)
 
   return {
     id: guid,
@@ -162,7 +172,11 @@ export const processTopic = (topic) => {
     category,
     categoryId,
     link,
-    frameSize,
+    ...frameSizeResultToDbSchema(
+      FRAME_SIZE_CATEGORIES.includes(categoryId)
+        ? parseFrameSize(sanitizedMessage) || {}
+        : {}
+    ),
     title: cleanUpSubject(location)(subject),
     sold: lastSnapshotIsSold(snapshots),
     price: parsePrice(message),
@@ -173,4 +187,17 @@ export const processTopic = (topic) => {
 export const findLastUnsoldSnapshot = R.pipe(
   sortById,
   R.findLast(L.get(['subject', isNotSold]))
+)
+
+const camelizeKeys = L.modify(L.keys, camelCase)
+const snapshotsL = ['snapshots', L.elems]
+const camelizeSnapshotKeys = L.modify(snapshotsL, camelizeKeys)
+const parseSnapshotDates = L.modify([snapshotsL, 'createdAt'], DateTime.fromISO)
+const dateToDateTime = L.modify('date', DateTime.fromJSDate)
+
+export const sanitizeTopicRow = R.pipe(
+  camelizeKeys,
+  camelizeSnapshotKeys,
+  parseSnapshotDates,
+  dateToDateTime
 )

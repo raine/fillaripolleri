@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export API_URL='http://static.23.162.216.95.clients.your-server.de'
+host="hzc-hel2"
+path="./fillaritori-scraper"
+yarn build
+rsync -avz dist/ $host:fillaripolleri

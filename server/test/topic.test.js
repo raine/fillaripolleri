@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs'
+import R from 'ramda'
 import {
   parsePrice,
   processTopic,
@@ -44,7 +45,8 @@ describe('processTopic()', () => {
       id: 134148,
       category: 'Täysjousitetut 80-125mm',
       categoryId: 1,
-      frameSize: null,
+      frameSizeCm: null,
+      frameSizeTshirt: null,
       link: 'https://www.fillaritori.com/topic/134148-m-canyon-lux-cf-99-race-team-xl-16/',
       location: 'Kauhajoki',
       timestamp: '2018-09-03T21:05:31.000+03:00',
@@ -76,7 +78,8 @@ describe('processTopic()', () => {
       category: 'Muut',
       categoryId: 1,
       id: 134116,
-      frameSize: null,
+      frameSizeCm: null,
+      frameSizeTshirt: null,
       link: 'https://www.fillaritori.com/topic/134116-tacx-flux-treineri/',
       location: 'Hämeenlinna',
       price: 480,
@@ -107,7 +110,8 @@ describe('processTopic()', () => {
     expect(processTopic(input)).toEqual({
       category: 'Lasten',
       categoryId: 1,
-      frameSize: null,
+      frameSizeCm: null,
+      frameSizeTshirt: null,
       id: 134132,
       link: 'https://www.fillaritori.com/topic/134132-dawes-blowfish-py%C3%B6r%C3%A4-16-helsinki-uusimaa/',
       location: 'Helsinki',
@@ -311,29 +315,31 @@ runTestList('parseLocation()', parseLocation, [
 ])
 
 // describe.only('foo', () => {
-runTestList('parseFrameSize()', parseFrameSize, [
-  ['blah\nRungon koko (lisää myös otsikkoon): 54 cm\nblah', '54cm'],
-  ['blah\nRungon koko (lisää myös otsikkoon): 52cm\nblah', '52cm'],
-  ['blah\nRungon koko (lisää myös otsikkoon): 59\nblah', '59cm'],
-  ['blah\nRungon koko 54\nblah', '54cm'],
+runTestList('parseFrameSize()', R.pipe(parseFrameSize, R.prop('value')), [
+  ['blah\nRungon koko (lisää myös otsikkoon): 54 cm\nblah', 54],
+  ['blah\nRungon koko (lisää myös otsikkoon): 52cm\nblah', 52],
+  ['blah\nRungon koko (lisää myös otsikkoon): 59\nblah', 59],
+  ['blah\nRungon koko 54\nblah', 54],
   ['blah\nRungon koko (lisää myös otsikkoon): L\nblah', 'L'],
-  ['blah\nFrame Size: 55cm\nblah', '55cm'],
+  ['blah\nFrame Size: 55cm\nblah', 55],
   ['blah\nfoo L-Size bar\nblah', 'L'],
-  ['blah\nKoko 54\nblah', '54cm'],
-  ['blah\nRunkokoko 54cm\nblah', '54cm'],
-  ['blah\nRungon koko :58 cm, sopii yli\nblah', '58cm'],
-  ['blah\nRungon koko: 54\nblah', '54cm'],
-  ['blah\nkokoa 47 cm\nblah', '47cm'],
+  ['blah\nKoko 54\nblah', 54],
+  ['blah\nRunkokoko 54cm\nblah', 54],
+  ['blah\nRungon koko :58 cm, sopii yli\nblah', 58],
+  ['blah\nRungon koko: 54\nblah', 54],
+  ['blah\nkokoa 47 cm\nblah', 47],
   ['blah\nRunko Hiilikuitu koko s \nblah', 'S'],
   ['blah\nWilier Izoard Ultegra hiilikuitu S koko -vm 2009\nblah', 'S'],
-  ['blah\nRunko 55 cm\nblah', '55cm'],
-  ['blah\nRunkokoko on 56cm melko tavanomaisella\nblah', '56cm'],
-  ['blah\nRunko hiilikuitua, koko 58, sopii n. 184-200 pituisille\nblah', '58cm'],
-  ['blah\nRungon koko: 55,5/L\nblah', '55cm'],
-  ['blah\nCarbon frame, size 55. 2016. \nblah', '55cm'],
+  ['blah\nRunko 55 cm\nblah', 55],
+  ['blah\nRunkokoko on 56cm melko tavanomaisella\nblah', 56],
+  ['blah\nRunko hiilikuitua, koko 58, sopii n. 184-200 pituisille\nblah', 58],
+  ['blah\nRungon koko: 55,5/L\nblah', 55],
+  ['blah\nCarbon frame, size 55. 2016. \nblah', 55],
   ['blah\nFSA Gossamer kammet. Koko XL sopii n 185 blah', 'XL'],
-  ['blah\n51cm rungolla\n', '51cm'],
-  ['foo Runkossa on pintajälkiä KOKO 51cm', '51cm']
+  ['blah\n51cm rungolla\n', 51],
+  ['foo Runkossa on pintajälkiä KOKO 51cm', 51],
+  ['blah\nRungon koko XXL\nblah', '2XL'],
+  ['blah\nRungon koko XXS\nblah', '2XS']
   // ["blah\nMoser 111 Ultegra hiilikuitu 56 cm -vm 2013 \nblah", '56cm'],
 ])
 // })

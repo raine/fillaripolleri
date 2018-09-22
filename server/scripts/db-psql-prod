@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-remote_ip=95.216.172.63
+remote_ip=hzc-hel2
 local_port=54322
-service='postgres'
+service='fillaritori'
 database='fillaritori'
 
 # shellcheck disable=SC2029
