@@ -5,12 +5,14 @@ import log from './lib/logger'
 import config from './lib/config'
 import { listen } from './lib/db'
 import itemsR from './routes/items'
+import compression from 'compression'
 
 const app = express()
 const port = config.PORT
 
 // app.use(expressPinoLogger({ logger: log }))
 app.use(cors())
+app.use(compression())
 app.use('/items', itemsR)
 
 app.use((err, req, res, next) => {
