@@ -14,7 +14,7 @@ const Items = ({ items, searchCategory, isLastPage }) => {
       {U.mapElemsWithIds(
         'id',
         (item, id) => {
-          const { category, categoryId, title, timestamp, link, price, sold, location, frameSize } = U.destructure(item)
+          const { category, categoryId, title, timestamp, link, price, sold, location, frameSizeCm, frameSizeTshirt } = U.destructure(item)
           return <Item key={id} {...{
             id,
             category,
@@ -25,7 +25,8 @@ const Items = ({ items, searchCategory, isLastPage }) => {
             price,
             sold,
             location,
-            frameSize,
+            frameSizeCm,
+            frameSizeTshirt,
 
             searchCategory
           }} />

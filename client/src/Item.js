@@ -40,7 +40,8 @@ const Item = ({
   price,
   sold,
   location,
-  frameSize
+  frameSizeCm,
+  frameSizeTshirt
 }) => (
   <div className={style.item}>
     <div className={style.title}>
@@ -66,7 +67,8 @@ const Item = ({
         </li>
         {U.when(price, <li className={style.price}>{price}€</li>)}
         {U.when(location, <li className={style.location}>{location}</li>)}
-        {U.when(frameSize, <li className={style.frameSize}>{frameSize}</li>)}
+        {U.when(frameSizeCm, <li className={style.frameSize}>{frameSizeCm}cm</li>)}
+        {U.when(frameSizeTshirt, <li className={style.frameSize}>{frameSizeTshirt}</li>)}
         {U.when(sold, <li className={style.sold}><span>sold</span></li>)}
       </ul>
     </div>
