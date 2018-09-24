@@ -12,6 +12,6 @@ COPY server/routes ./routes
 COPY server/scripts ./scripts
 COPY server/data ./data
 
-COPY server/index.js server/main.js  ./
+COPY server/index.js server/main.js server/nginx.conf.sigil  ./
 
 CMD ["npm", "start"]
