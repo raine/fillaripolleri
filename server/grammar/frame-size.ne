@@ -55,7 +55,7 @@ frame_size_tshirt -> (
   | "3XS"i
 ) {% R.pipe(R.flatten, R.head, R.toUpper, wrapWithType('t-shirt')) %}
 
-any -> (. | "\n"):* {% nuller %}
+any -> [^]:* {% nuller %}
  
 _ -> [\s]:* {% (d) => null %}
 
