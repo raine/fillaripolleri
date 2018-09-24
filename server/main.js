@@ -4,6 +4,7 @@ import cors from 'cors'
 import log from './lib/logger'
 import config from './lib/config'
 import { listen } from './lib/db'
+import K from 'kefir'
 import itemsR from './routes/items'
 import compression from 'compression'
 

@@ -4,7 +4,7 @@ import * as R from 'ramda'
 import camelizeColumnNames from './camelize-column-names'
 import pgPromise from 'pg-promise'
 import log from './logger'
-import Kefir from 'kefir'
+import K from 'kefir'
 
 export const pgp = pgPromise({
   receive: (data) => {
@@ -42,6 +42,8 @@ const onConnectionLost = (err, e) => {
     })
 }
 
+
+let emitter
 const reconnect = (delay, maxAttempts) => {
   delay = delay > 0 ? parseInt(delay) : 0
   maxAttempts = maxAttempts > 0 ? parseInt(maxAttempts) : 1
@@ -74,10 +76,8 @@ const reconnect = (delay, maxAttempts) => {
   })
 }
 
-let emitter
-
 export const listen = () => {
-  const stream = Kefir.stream(e => {
+  const stream = K.stream(e => {
     emitter = e
   })
   return reconnect()
