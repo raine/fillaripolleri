@@ -11,6 +11,7 @@ COPY server/lib ./lib
 COPY server/routes ./routes
 COPY server/scripts ./scripts
 COPY server/data ./data
+COPY server/grammar ./grammar
 
 COPY server/index.js server/main.js server/nginx.conf.sigil  ./
 
