@@ -12,26 +12,26 @@ import * as K from 'kefir'
 import snakeCase from 'lodash.snakecase'
 
 const snakefyKeys = L.modify(L.keys, snakeCase)
-const queryFileString = (qf) =>
-  qf[pgp.as.ctf.toPostgres]()
 
-const qs = new QueryStream(queryFileString(sql('topics.sql')))
-db.stream(qs, (s) => {
-  fromNodeStream(toReadable(s))
-    .map(
-      R.pipe(
-        sanitizeTopicRow,
-        processTopic,
-        snakefyKeys,
-        L.modify('title', R.toUpper)
+db.stream(
+  new QueryStream(
+    pgp.as.format(sql('topics.sql'), { where: '' })
+  ),
+  (stream) => {
+    fromNodeStream(toReadable(stream))
+      .map(
+        R.pipe(
+          sanitizeTopicRow,
+          processTopic,
+          snakefyKeys
+        )
       )
-    )
-    .bufferWithCount(100)
-    .flatMapConcat((items) => K.fromPromise(upsertItems(items)))
-    .onError((err) => {
-      log.error(err)
-    })
-    .onEnd(() => {
-      pgp.end()
-    })
-})
+      .bufferWithCount(100)
+      .flatMapConcat((items) => K.fromPromise(upsertItems(items)))
+      .onError((err) => {
+        log.error(err)
+      })
+      .onEnd(() => {
+        pgp.end()
+      })
+  })

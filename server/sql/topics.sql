@@ -8,5 +8,6 @@ SELECT t.guid,
     ON tc.id = t.category_id
   JOIN topic_snapshot ts
     ON ts.guid = t.guid
+ ${where:raw}
  GROUP BY t.guid
  ORDER BY guid DESC
