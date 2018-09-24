@@ -3,10 +3,11 @@ import express from 'express'
 import cors from 'cors'
 import log from './lib/logger'
 import config from './lib/config'
-import { listen } from './lib/db'
+import { listen, pgp, sql } from './lib/db'
 import K from 'kefir'
 import itemsR from './routes/items'
 import compression from 'compression'
+import processTopicsWithQuery from './lib/process-topics'
 
 const app = express()
 const port = config.PORT
@@ -35,21 +36,23 @@ async function main() {
     log.info(`listening at ${port}`)
   })
 
-  const s = await listen()
-  s.log()
+  ;(await listen())
+    .onValue(obj => log.info(obj, 'got notification'))
+    .flatMap(() =>
+      processTopicsWithQuery(
+        pgp.as.format(sql('latest_topics.sql'))
+      )
+    )
+    .onValue(() => {
+      log.info('done processing new topics')
+    })
+    .onError((err) => {
+      log.error(err)
+    })
 }
-
-
-// const fromNodeStream = require('kefir-node-stream')
-
-// notificationS.log()
-// fromNodeStream(s)
 
 main()
   .catch(err => {
     log.error(err)
     process.exitCode = 1
   })
-
-// you can also use pgp.as.format(query, values, options)
-// to format queries properly, via pg-promise;
