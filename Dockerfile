@@ -2,6 +2,8 @@ FROM node:10.5-alpine
 
 WORKDIR /usr/src/app
 
+RUN apk add -U bash
+
 ENV NODE_ENV=production
 COPY server/package.json server/yarn.lock ./
 RUN yarn install
