@@ -6,8 +6,9 @@ import * as frameSizeGrammar from  '../grammar/frame-size'
 import fs from 'fs'
 import camelCase from 'lodash.camelcase'
 import { DateTime } from 'luxon'
-import sanitizeHtml from 'sanitize-html'
+import TurndownService from 'turndown'
 
+const turndownService =  new TurndownService()
 const locations = require('../data/cities.json')
 const abbrevToLocation = require('../data/cities-abbreviations.json')
 const locationToAbbrev = R.invertObj(abbrevToLocation)
@@ -136,7 +137,7 @@ export const parseLocation = (str) => R.pipe(
   R.when(Boolean, capitalize)
 )(str)
 
-export const parseFrameSize = (sanitizedMessage) => {
+export const parseFrameSize = (id, sanitizedMessage) => {
   const parser = new nearley.Parser(nearley.Grammar.fromCompiled(frameSizeGrammar))
   try {
     parser.feed(sanitizedMessage)
@@ -155,7 +156,7 @@ const frameSizeResultToDbSchema = ({ type, value }) => ({
 
 const sanitizeMsg = R.pipe(
   remove(/\u2028/g),
-  sanitizeHtml
+  html => turndownService.turndown(html)
 )
 
 const FRAME_SIZE_CATEGORIES = [69, 55, 54, 56, 57, 63, 61, 62, 8, 74]
@@ -174,7 +175,7 @@ export const processTopic = (topic) => {
     link,
     ...frameSizeResultToDbSchema(
       FRAME_SIZE_CATEGORIES.includes(categoryId)
-        ? parseFrameSize(sanitizedMessage) || {}
+        ? parseFrameSize(guid, sanitizedMessage) || {}
         : {}
     ),
     title: cleanUpSubject(location)(subject),
