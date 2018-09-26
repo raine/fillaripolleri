@@ -137,16 +137,30 @@ export const parseLocation = (str) => R.pipe(
   R.when(Boolean, capitalize)
 )(str)
 
-export const parseFrameSize = (id, sanitizedMessage) => {
-  const parser = new nearley.Parser(nearley.Grammar.fromCompiled(frameSizeGrammar))
+const parseEachLineWithGrammar = (grammar, sanitizedMessage) =>
+  R.pipe(
+    R.split('\n'),
+    R.addIndex(R.map)((line, idx) => {
+      const parser = new nearley.Parser(grammar)
+      parser.feed(line)
+      return parser.results
+    }),
+    R.flatten
+  )(sanitizedMessage)
+
+export const parseFrameSize = (id) => (sanitizedMessage) => {
+  let results
   try {
-    parser.feed(sanitizedMessage)
+    fs.writeFileSync(`tmp/${id}.txt`, sanitizedMessage, 'utf8')
+    results = parseEachLineWithGrammar(
+      nearley.Grammar.fromCompiled(frameSizeGrammar), sanitizedMessage
+    )
   } catch (err) {
     log.error(err, 'error parsing sanitized message')
     fs.writeFileSync(`tmp/${Date.now()}.txt`, sanitizedMessage, 'utf8')
     return null
   }
-  return parser.results[0]
+  return results.length ? results[0] : null
 }
 
 const frameSizeResultToDbSchema = ({ type, value }) => ({
@@ -175,7 +189,7 @@ export const processTopic = (topic) => {
     link,
     ...frameSizeResultToDbSchema(
       FRAME_SIZE_CATEGORIES.includes(categoryId)
-        ? parseFrameSize(guid, sanitizedMessage) || {}
+        ? parseFrameSize(guid)(sanitizedMessage) || {}
         : {}
     ),
     title: cleanUpSubject(location)(subject),

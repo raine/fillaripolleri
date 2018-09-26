@@ -314,8 +314,10 @@ runTestList('parseLocation()', parseLocation, [
   ['Paikkakunta : Pietarsaari', 'Pietarsaari']
 ])
 
-// describe.only('foo', () => {
-runTestList('parseFrameSize()', R.pipe(parseFrameSize, R.prop('value')), [
+runTestList('parseFrameSize()', R.pipe(
+  parseFrameSize(1),
+  R.when(Boolean, R.prop('value'))
+), [
   ['blah\nRungon koko (lisää myös otsikkoon): 54 cm\nblah', 54],
   ['blah\nRungon koko (lisää myös otsikkoon): 52cm\nblah', 52],
   ['blah\nRungon koko (lisää myös otsikkoon): 59\nblah', 59],
@@ -339,7 +341,7 @@ runTestList('parseFrameSize()', R.pipe(parseFrameSize, R.prop('value')), [
   ['blah\n51cm rungolla\n', 51],
   ['foo Runkossa on pintajälkiä KOKO 51cm', 51],
   ['blah\nRungon koko XXL\nblah', '2XL'],
-  ['blah\nRungon koko XXS\nblah', '2XS']
+  ['blah\nRungon koko XXS\nblah', '2XS'],
+  ['Rengaskoko', null]
   // ["blah\nMoser 111 Ultegra hiilikuitu 56 cm -vm 2013 \nblah", '56cm'],
 ])
-// })

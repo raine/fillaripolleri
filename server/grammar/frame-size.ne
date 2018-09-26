@@ -6,13 +6,14 @@
 main -> any frame_size_candidate _ any {% R.nth(1) %}
 
 frame_size_candidate ->
-    frame_size_prefix sep _ frame_size         {% R.last %}
-  | frame_size_tshirt "-size"i                 {% R.head %}
-  | frame_size_tshirt _ "koko"i                {% R.head %}
-  | frame_size_number "cm" _ frame_size_suffix {% R.head %}
-# | frame_size_number _ "cm"i                  {% R.head %}
+    frame_size_prefix sep1 _ frame_size         {% R.last %}
+  | frame_size_tshirt "-size"i                  {% R.head %}
+  | frame_size_tshirt sep2 "koko"i              {% R.head %}
+  | frame_size_number "cm"i _ frame_size_suffix {% R.head %}
+# | frame_size_number _ "cm"i                   {% R.head %}
 
-sep -> (_ ":") | __
+sep1 -> (_ ":") | __
+sep2 -> __ | "-"
 
 frame_size_prefix ->
     "Rungon koko"i
@@ -57,6 +58,6 @@ frame_size_tshirt -> (
 
 any -> [^]:* {% nuller %}
  
-_ -> [\s]:* {% (d) => null %}
+_ -> [\s]:* {% () => null %}
 
-__ -> " " {% (d) => null %}
+__ -> " " {% () => null %}

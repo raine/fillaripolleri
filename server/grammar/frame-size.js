@@ -9,16 +9,18 @@ function id(x) { return x[0]; }
     Lexer: undefined,
     ParserRules: [
     {"name": "main", "symbols": ["any", "frame_size_candidate", "_", "any"], "postprocess": R.nth(1)},
-    {"name": "frame_size_candidate", "symbols": ["frame_size_prefix", "sep", "_", "frame_size"], "postprocess": R.last},
+    {"name": "frame_size_candidate", "symbols": ["frame_size_prefix", "sep1", "_", "frame_size"], "postprocess": R.last},
     {"name": "frame_size_candidate$subexpression$1", "symbols": [{"literal":"-"}, /[sS]/, /[iI]/, /[zZ]/, /[eE]/], "postprocess": function(d) {return d.join(""); }},
     {"name": "frame_size_candidate", "symbols": ["frame_size_tshirt", "frame_size_candidate$subexpression$1"], "postprocess": R.head},
     {"name": "frame_size_candidate$subexpression$2", "symbols": [/[kK]/, /[oO]/, /[kK]/, /[oO]/], "postprocess": function(d) {return d.join(""); }},
-    {"name": "frame_size_candidate", "symbols": ["frame_size_tshirt", "_", "frame_size_candidate$subexpression$2"], "postprocess": R.head},
-    {"name": "frame_size_candidate$string$1", "symbols": [{"literal":"c"}, {"literal":"m"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "frame_size_candidate", "symbols": ["frame_size_number", "frame_size_candidate$string$1", "_", "frame_size_suffix"], "postprocess": R.head},
-    {"name": "sep$subexpression$1", "symbols": ["_", {"literal":":"}]},
-    {"name": "sep", "symbols": ["sep$subexpression$1"]},
-    {"name": "sep", "symbols": ["__"]},
+    {"name": "frame_size_candidate", "symbols": ["frame_size_tshirt", "sep2", "frame_size_candidate$subexpression$2"], "postprocess": R.head},
+    {"name": "frame_size_candidate$subexpression$3", "symbols": [/[cC]/, /[mM]/], "postprocess": function(d) {return d.join(""); }},
+    {"name": "frame_size_candidate", "symbols": ["frame_size_number", "frame_size_candidate$subexpression$3", "_", "frame_size_suffix"], "postprocess": R.head},
+    {"name": "sep1$subexpression$1", "symbols": ["_", {"literal":":"}]},
+    {"name": "sep1", "symbols": ["sep1$subexpression$1"]},
+    {"name": "sep1", "symbols": ["__"]},
+    {"name": "sep2", "symbols": ["__"]},
+    {"name": "sep2", "symbols": [{"literal":"-"}]},
     {"name": "frame_size_prefix$subexpression$1", "symbols": [/[rR]/, /[uU]/, /[nN]/, /[gG]/, /[oO]/, /[nN]/, {"literal":" "}, /[kK]/, /[oO]/, /[kK]/, /[oO]/], "postprocess": function(d) {return d.join(""); }},
     {"name": "frame_size_prefix", "symbols": ["frame_size_prefix$subexpression$1"]},
     {"name": "frame_size_prefix$subexpression$2", "symbols": [/[rR]/, /[uU]/, /[nN]/, /[gG]/, /[oO]/, /[nN]/, {"literal":" "}, /[kK]/, /[oO]/, /[kK]/, /[oO]/, {"literal":" "}, {"literal":"("}, /[lL]/, /[iI]/, /[sS]/, /[äÄ]/, /[äÄ]/, {"literal":" "}, /[mM]/, /[yY]/, /[öÖ]/, /[sS]/, {"literal":" "}, /[oO]/, /[tT]/, /[sS]/, /[iI]/, /[kK]/, /[kK]/, /[oO]/, /[oO]/, /[nN]/, {"literal":")"}], "postprocess": function(d) {return d.join(""); }},
@@ -80,8 +82,8 @@ function id(x) { return x[0]; }
     {"name": "any", "symbols": ["any$ebnf$1"], "postprocess": nuller},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", /[\s]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": (d) => null},
-    {"name": "__", "symbols": [{"literal":" "}], "postprocess": (d) => null}
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": () => null},
+    {"name": "__", "symbols": [{"literal":" "}], "postprocess": () => null}
 ]
   , ParserStart: "main"
 }
