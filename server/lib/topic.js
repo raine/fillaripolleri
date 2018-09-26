@@ -151,7 +151,7 @@ const parseEachLineWithGrammar = (grammar, sanitizedMessage) =>
 export const parseFrameSize = (id) => (sanitizedMessage) => {
   let results
   try {
-    fs.writeFileSync(`tmp/${id}.txt`, sanitizedMessage, 'utf8')
+    // fs.writeFileSync(`tmp/${id}.txt`, sanitizedMessage, 'utf8')
     results = parseEachLineWithGrammar(
       nearley.Grammar.fromCompiled(frameSizeGrammar), sanitizedMessage
     )
