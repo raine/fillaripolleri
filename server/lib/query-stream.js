@@ -12,6 +12,7 @@ const queryStream = (query) =>
         .onError((err) => emitter.error(err))
         .onEnd(() => emitter.end())
     )
+    .catch(err => emitter.error(err))
   )
 
 export default queryStream

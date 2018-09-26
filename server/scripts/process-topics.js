@@ -16,6 +16,7 @@ processTopicsWithQuery(pgp.as.format(sql('topics.sql'), {
 }))
 .onError((err) => {
   log.error(err)
+  process.exit(1)
 })
 .onEnd(() => {
   log.info('done')
