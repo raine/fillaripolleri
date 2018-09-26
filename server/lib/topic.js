@@ -174,7 +174,7 @@ const sanitizeMsg = R.pipe(
 )
 
 const FRAME_SIZE_CATEGORIES = [
-  8, 54, 55, 56, 57, 60, 61, 62, 63, 69, 72, 74, 75
+  8, 54, 55, 56, 57, 60, 61, 62, 63, 69, 72, 74, 75, 84, 85, 86
 ]
 
 export const processTopic = (topic) => {
