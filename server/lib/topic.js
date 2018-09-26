@@ -173,7 +173,10 @@ const sanitizeMsg = R.pipe(
   html => turndownService.turndown(html)
 )
 
-const FRAME_SIZE_CATEGORIES = [69, 55, 54, 56, 57, 63, 61, 62, 8, 74]
+const FRAME_SIZE_CATEGORIES = [
+  8, 54, 55, 56, 57, 61, 62, 63, 69, 72, 74, 75
+]
+
 export const processTopic = (topic) => {
   const { snapshots, guid, date, category, categoryId } = topic
   const snapshot = findLastUnsoldSnapshot(snapshots) || snapshots[0]
