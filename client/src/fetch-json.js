@@ -13,13 +13,12 @@ const fetchJSON = hasAbort
       U.fromPromise(() => {
         const url = API_URL + path + queryStringify(R.pickBy(Boolean, query))
         const controller = new AbortController()
-        console.log(`fetch start ${url}`)
 
         return {
           ready: fetch(url, {
             ...params,
             signal: controller.signal
-          }).then((res) => console.log('fetch end  ') || res.json()),
+          }).then((res) => res.json()),
           abort() {
             controller.abort()
           }
