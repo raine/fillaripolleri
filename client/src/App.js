@@ -14,7 +14,7 @@ import style from './App.scss'
 import categories from '../categories.json'
 
 const spy = (label, o) => {
-  o.spy(label) 
+  o.spy(label)
   return o
 }
 
@@ -44,38 +44,39 @@ const App = ({ search, items, isLastPage }) => {
   const fetchAndUpdateItems = (s) =>
     U.thru(
       fetchJSON('/items', { s }),
-      U.consume((res) => 
+      U.consume((res) =>
         U.holding(() => {
           items.set(res.items)
           isLastPage.set(res.isLastPage)
-        }))
+        })
+      )
     )
 
-  const getSearchedItems =
-    U.thru(
-      U.template({
-        searchQuery: debouncedSearch,
-        searchCategory
-      }),
-      U.skipFirst(1),
-      U.flatMapLatest(({ searchQuery, searchCategory }) =>
-        fetchJSON('/items', {
-          s: searchQuery,
-          category: searchCategory
-        })),
-      U.consume((res) => 
-        U.holding(() => {
-          items.set(res.items)
-          isLastPage.set(res.isLastPage)
-        }))
+  const getSearchedItems = U.thru(
+    U.template({
+      searchQuery: debouncedSearch,
+      searchCategory
+    }),
+    U.skipFirst(1),
+    U.flatMapLatest(({ searchQuery, searchCategory }) =>
+      fetchJSON('/items', {
+        s: searchQuery,
+        category: searchCategory
+      })
+    ),
+    U.consume((res) =>
+      U.holding(() => {
+        items.set(res.items)
+        isLastPage.set(res.isLastPage)
+      })
     )
+  )
 
-  const fetchInitialItemsEffect =
-    U.thru(
-      searchQuery,
-      U.takeFirst(1),
-      U.flatMapLatest(fetchAndUpdateItems)
-    ) 
+  const fetchInitialItemsEffect = U.thru(
+    searchQuery,
+    U.takeFirst(1),
+    U.flatMapLatest(fetchAndUpdateItems)
+  )
 
   const loadNextPage = () =>
     U.thru(
@@ -85,7 +86,7 @@ const App = ({ search, items, isLastPage }) => {
         fetchJSON('/items', {
           s: searchQuery,
           after_id: lastItemId,
-          category: searchCategory 
+          category: searchCategory
         })
       )
     )
@@ -100,29 +101,35 @@ const App = ({ search, items, isLastPage }) => {
     needMore,
     U.thru(
       loadMore(),
-      U.consume(res =>
+      U.consume((res) =>
         U.holding(() => {
           items.modify(R.concat(R.__, res.items))
           isLastPage.set(res.isLastPage)
-        }))
+        })
+      )
     )
   )
 
   return (
     <div className={style.appContainer}>
-      <Search
-        query={searchQuery}
-        category={searchCategory}
+      <Search query={searchQuery} category={searchCategory} />
+      <Items
+        {...{
+          items,
+          searchCategory,
+          isLastPage
+        }}
       />
-      <Items {...{
-        items,
-        searchCategory,
-        isLastPage
-      }} />
-      {U.consume(modifySearchParamsEffect, U.skipFirst(1, U.template({
-        searchQuery: debouncedSearch,
-        searchCategory
-      })))}
+      {U.consume(
+        modifySearchParamsEffect,
+        U.skipFirst(
+          1,
+          U.template({
+            searchQuery: debouncedSearch,
+            searchCategory
+          })
+        )
+      )}
 
       {U.sink(getSearchedItems)}
       {U.sink(fetchInitialItemsEffect)}
