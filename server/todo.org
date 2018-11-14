@@ -29,4 +29,5 @@ CLOSED: [2018-09-12 Wed 21:32]
 ** TODO Try tf-idf
 ** DONE Handle empty titles
 CLOSED: [2018-09-22 Sat 21:54]
-** TODO Make enum for t-shirt frame sizes
+** DONE Make enum for t-shirt frame sizes
+CLOSED: [2018-09-23 Sun 22:52]

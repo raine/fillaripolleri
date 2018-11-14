@@ -43,18 +43,28 @@ frame_size_number -> (
 ) {% R.pipe(R.head, R.join(''), parseInt, wrapWithType('cm')) %}
 
 frame_size_tshirt -> (
-    "3XL"i
-  | "2XL"i
+    "3XL"i {% R.head %}
+  | "2XL"i {% R.head %}
   | "XXL"i {% () => '2XL' %}
-  | "XL"i
-  | "L"i
-  | "M"i
-  | "S"i
-  | "XS"i
+  | "XL"i {% R.head %}
+  | "L"i {% R.head %}
+  | "M"i {% R.head %}
+  | "S"i {% R.head %}
+  | "XS"i {% R.head %}
   | "XXS"i {% () => '2XS' %}
-  | "2XS"i
-  | "3XS"i
-) {% R.pipe(R.flatten, R.head, R.toUpper, wrapWithType('t-shirt')) %}
+  | "2XS"i {% R.head %}
+  | "3XS"i {% R.head %}
+) .:? {% (d, l, rej) => {
+  console.log(d)
+  if (d[1] != null) return rej;
+
+  return R.pipe(
+    R.head,
+    R.toUpper,
+    wrapWithType('t-shirt')
+  )(d)
+}
+%}
 
 any -> [^]:* {% nuller %}
  

@@ -143,12 +143,15 @@ const parseEachLineWithGrammar = (grammar, sanitizedMessage) =>
     R.addIndex(R.map)((line, idx) => {
       const parser = new nearley.Parser(grammar)
       parser.feed(line)
-      return parser.results
+      return parser.results.length
+        ? { input: line, output: parser.results }
+        : null
     }),
-    R.flatten
+    R.filter(Boolean)
   )(sanitizedMessage)
 
 export const parseFrameSize = (id) => (sanitizedMessage) => {
+  // log.info({ id, sanitizedMessage }, 'parsing frame size')
   let results
   try {
     // fs.writeFileSync(`tmp/${id}.txt`, sanitizedMessage, 'utf8')
@@ -160,7 +163,8 @@ export const parseFrameSize = (id) => (sanitizedMessage) => {
     fs.writeFileSync(`tmp/${Date.now()}.txt`, sanitizedMessage, 'utf8')
     return null
   }
-  return results.length ? results[0] : null
+  // log.info({ id, results }, 'parsing result')
+  return results.length ? results[0].output[0] : null
 }
 
 const frameSizeResultToDbSchema = ({ type, value }) => ({
