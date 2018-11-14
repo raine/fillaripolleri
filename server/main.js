@@ -56,5 +56,3 @@ main()
     log.error(err)
     process.exitCode = 1
   })
-
-console.log('hello')
