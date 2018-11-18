@@ -85,7 +85,7 @@ export const listen = () => {
       log.info('listening to db notifications')
       return stream
     })
-    .catch((er) => {
+    .catch((err) => {
       log.error(err, 'failed to connect')
     })
 }
