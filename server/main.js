@@ -17,6 +17,10 @@ app.use(cors())
 app.use(compression())
 app.use('/items', itemsR)
 
+app.get('/', (req, res) => {
+  res.send('OK')
+})
+
 app.use((err, req, res, next) => {
   if (res.headersSent) {
     next(err)
