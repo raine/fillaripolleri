@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+image="registry.gitlab.com/rainevi/fillaripolleri/server"
+commit="$(git rev-parse --verify HEAD)"
+
+docker build -t $image .
+docker tag $image $image:$commit
+docker tag $image $image:latest
+docker push $image
