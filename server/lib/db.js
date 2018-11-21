@@ -32,8 +32,8 @@ const onNotification = (data) =>
 
 const onConnectionLost = (err, e) => {
   log.error(err, 'connection lost')
+  connection.client.removeListener('notification', onNotification)
   connection = null
-  client.removeListener('notification', onNotification)
   reconnect(5000, 10)
     .then(() => log.info('reconnected'))
     .catch(() => {
@@ -54,7 +54,7 @@ const reconnect = (delay, maxAttempts) => {
           connection = obj // global connection is now available
           resolve(obj)
 
-          obj.client.on('notification', (data) => {
+          connection.client.on('notification', (data) => {
             emitter.emit(data)
           })
 
