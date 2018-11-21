@@ -21,6 +21,10 @@ app.get('/', (req, res) => {
   res.send('OK')
 })
 
+app.get('/healthz', (req, res) => {
+  res.sendStatus(200)
+})
+
 app.use((err, req, res, next) => {
   if (res.headersSent) {
     next(err)
