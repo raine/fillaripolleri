@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euox pipefail
+
+RELEASE=master
+CHART_PATH=/Users/raine/code/kubernetes/my-kube/fillaripolleri
+RELEASE_VALUES=$(helm get values $RELEASE)
+SERVER_TAG=${SERVER_TAG:-`yq r - server.tag <<< "$RELEASE_VALUES"`}
+CLIENT_TAG=${CLIENT_AG:-`yq r - client.tag <<< "$RELEASE_VALUES"`}
+SCRAPER_TAG=${SCRAPER_TAG:-`yq r - scraper.tag <<< "$RELEASE_VALUES"`}
+
+helm upgrade \
+  --set server.tag="$SERVER_TAG" \
+  --set client.tag="$CLIENT_TAG" \
+  --set scraper.tag="$SCRAPER_TAG" \
+  $RELEASE $CHART_PATH

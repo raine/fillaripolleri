@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
-image="registry.gitlab.com/rainevi/fillaripolleri/client"
-commit="$(git rev-parse --verify HEAD)"
+set -euox pipefail
 
-docker build -t $image .
-docker tag $image $image:$commit
-docker tag $image $image:latest
-docker push $image
+FILLARIPOLLERI_PATH=$HOME/code/fillaripolleri
+IMAGE="registry.gitlab.com/rainevi/fillaripolleri/server"
+COMMIT="$(git rev-parse --verify HEAD)"
+
+docker build -t $IMAGE .
+docker tag $IMAGE $IMAGE:$COMMIT
+docker tag $IMAGE $IMAGE:latest
+docker push $IMAGE
+
+CLIENT_TAG=$COMMIT $FILLARIPOLLERI_PATH/helm-upgrade-release
