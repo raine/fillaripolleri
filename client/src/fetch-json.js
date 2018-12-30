@@ -6,16 +6,16 @@ import searchParamsL from './search-params'
 const queryStringify = L.getInverse(searchParamsL)
 
 const API_URL = process.env.API_URL
+const formatUrl = (path, query) =>
+  API_URL + path + queryStringify(R.pickBy(Boolean, query))
 
 const hasAbort = typeof AbortController !== 'undefined'
 const fetchJSON = hasAbort
   ? (path, query = {}, params = {}) =>
       U.fromPromise(() => {
-        const url = API_URL + path + queryStringify(R.pickBy(Boolean, query))
         const controller = new AbortController()
-
         return {
-          ready: fetch(url, {
+          ready: fetch(formatUrl(path, query), {
             ...params,
             signal: controller.signal
           }).then((res) => res.json()),
@@ -24,9 +24,9 @@ const fetchJSON = hasAbort
           }
         }
       })
-  : (path, params = {}) =>
+  : (path, query = {}, params = {}) =>
       U.fromPromise(() =>
-        fetch(API_URL + path, params).then((res) => res.json())
+        fetch(formatUrl(path, query), params).then((res) => res.json())
       )
 
 export default fetchJSON
