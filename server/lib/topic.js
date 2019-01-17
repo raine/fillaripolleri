@@ -21,7 +21,7 @@ const removeSellingPrefix = remove(/^m\s?:|^myydään?|^myynnissä/i)
 const removeSold = remove(/^myyty( - |:)?\s?/i)
 const trimSpecial = removePatterns([
   /^[\s!:_\-,]*/,
-  /[\s!:_\-,/\*]*$/,
+  /[\s!:_\-,/\*\|]*$/,
   /\(\)/, // If removing price/location results in ()
   /\[\]/ // If removing price/location results in []
 ])
