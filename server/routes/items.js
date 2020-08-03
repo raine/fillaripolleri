@@ -8,7 +8,7 @@ const router = new Router()
 // const removeSnapshotMessages = L.set([snapshotsL, 'message'], '[REDACTED]')
 
 const whereTitleLike = (str) =>
-  pgp.as.format('title ILIKE $1', [`%${str}%`])
+  pgp.as.format(`title_tsvector @@ websearch_to_tsquery('finnish', $1)`, [str])
 
 const whereIdIs = (id) => pgp.as.format('i.id = $1', id)
 const whereIdLt = (id) => pgp.as.format('i.id < $1', id)
@@ -38,13 +38,11 @@ router.get(
       ])
     )
 
-    return db
-      .any(query, { where, limit: PAGE_SIZE + 1 })
-      .then((items) => {
-        const init = R.take(PAGE_SIZE, items)
-        const isLastPage = items.length < PAGE_SIZE
-        res.json({ items: init, isLastPage })
-      })
+    return db.any(query, { where, limit: PAGE_SIZE + 1 }).then((items) => {
+      const init = R.take(PAGE_SIZE, items)
+      const isLastPage = items.length < PAGE_SIZE
+      res.json({ items: init, isLastPage })
+    })
   })
 )
 
