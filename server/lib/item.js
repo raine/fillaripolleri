@@ -1,8 +1,9 @@
 import { db, pgp } from '../lib/db'
 
 const ON_CONFLICT = `ON CONFLICT (id)
-   DO UPDATE SET (title, link, frame_size_cm, frame_size_tshirt, sold, price, location) = (
+   DO UPDATE SET (title, title_tsvector, link, frame_size_cm, frame_size_tshirt, sold, price, location) = (
       EXCLUDED.title,
+      EXCLUDED.title_tsvector,
       EXCLUDED.link,
       EXCLUDED.frame_size_cm,
       EXCLUDED.frame_size_tshirt,
@@ -16,6 +17,10 @@ const cs = new pgp.helpers.ColumnSet(
     'timestamp',
     'category_id',
     'title',
+    {
+      name: 'title_tsvector',
+      mod: '^' // format as raw text
+    },
     'link',
     'frame_size_cm',
     'frame_size_tshirt',
@@ -26,5 +31,17 @@ const cs = new pgp.helpers.ColumnSet(
   { table: 'item' }
 )
 
-export const upsertItems = (items) =>
-  db.none(pgp.helpers.insert(items, cs) + ' ' + ON_CONFLICT)
+export const upsertItems = (items) => {
+  const query =
+    pgp.helpers.insert(
+      items.map((item) => ({
+        ...item,
+        title_tsvector: pgp.as.format(`to_tsvector('finnish', $1)`, item.title)
+      })),
+      cs
+    ) +
+    ' ' +
+    ON_CONFLICT
+
+  return db.none(query)
+}

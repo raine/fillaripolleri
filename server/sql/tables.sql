@@ -17,7 +17,8 @@ CREATE TABLE item (
   frame_size_tshirt tshirt_size,
   sold              boolean DEFAULT false,
   price             integer,
-  location          text
+  location          text,
+  title_tsvector    tsvector NOT NULL
 );
 
 CREATE FUNCTION notify() RETURNS TRIGGER AS $$
