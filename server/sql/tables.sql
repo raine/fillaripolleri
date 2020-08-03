@@ -21,6 +21,9 @@ CREATE TABLE item (
   title_tsvector    tsvector NOT NULL
 );
 
+CREATE INDEX item_title_tsvector_idx
+ON item USING gin (title_tsvector);
+
 CREATE FUNCTION notify() RETURNS TRIGGER AS $$
 DECLARE
 BEGIN
