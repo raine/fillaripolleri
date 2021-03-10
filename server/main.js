@@ -40,10 +40,6 @@ app.use((err, req, res, next) => {
 })
 
 async function main() {
-  await processTopicsWithQuery(
-    pgp.as.format(sql('latest_topics.sql'))
-  )
-
   app.listen(port, () => {
     log.info(`listening at ${port}`)
   })
