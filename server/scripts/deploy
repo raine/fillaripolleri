@@ -11,7 +11,8 @@ CHART_PATH=/Users/raine/code/kubernetes/my-kube/fillaripolleri
 docker build -t $IMAGE .
 docker tag $IMAGE $IMAGE:$COMMIT
 docker tag $IMAGE $IMAGE:latest
-docker push $IMAGE
+docker push $IMAGE:$COMMIT
+docker push $IMAGE:latest
 
 helm upgrade \
   --reuse-values \
