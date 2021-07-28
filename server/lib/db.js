@@ -37,7 +37,7 @@ const onConnectionLost = (err, e) => {
   reconnect(5000, 10)
     .then(() => log.info('reconnected'))
     .catch(() => {
-      log.err('connection lost too many times')
+      log.error('connection lost too many times')
       process.exit()
     })
 }
