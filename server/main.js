@@ -43,13 +43,10 @@ async function main() {
   app.listen(port, () => {
     log.info(`listening at ${port}`)
   })
-
   ;(await listen())
-    .onValue(obj => log.info(obj, 'got notification'))
+    .onValue((obj) => log.info(obj, 'got notification'))
     .flatMap(() =>
-      processTopicsWithQuery(
-        pgp.as.format(sql('latest_topics.sql'))
-      )
+      processTopicsWithQuery(pgp.as.format(sql('latest_topics.sql')))
     )
     .onValue(() => {
       log.info('done processing new topics')
@@ -59,8 +56,7 @@ async function main() {
     })
 }
 
-main()
-  .catch(err => {
-    log.error(err)
-    process.exitCode = 1
-  })
+main().catch((err) => {
+  log.error(err)
+  process.exit(1)
+})

@@ -24,11 +24,9 @@ export const sql = R.memoize((file) => {
   }
 })
 
-
 let connection
 
-const onNotification = (data) =>
-  log.info({ data }, 'got notification')
+const onNotification = (data) => log.info({ data }, 'got notification')
 
 const onConnectionLost = (err, e) => {
   log.error(err, 'connection lost')
@@ -41,7 +39,6 @@ const onConnectionLost = (err, e) => {
       process.exit()
     })
 }
-
 
 let emitter
 const reconnect = (delay, maxAttempts) => {
@@ -65,9 +62,7 @@ const reconnect = (delay, maxAttempts) => {
         .catch((err) => {
           log.error(err)
           if (--maxAttempts) {
-            reconnect(delay, maxAttempts)
-              .then(resolve)
-              .catch(reject)
+            reconnect(delay, maxAttempts).then(resolve).catch(reject)
           } else {
             reject(err)
           }
@@ -77,7 +72,7 @@ const reconnect = (delay, maxAttempts) => {
 }
 
 export const listen = () => {
-  const stream = K.stream(e => {
+  const stream = K.stream((e) => {
     emitter = e
   })
   return reconnect()
@@ -87,5 +82,6 @@ export const listen = () => {
     })
     .catch((err) => {
       log.error(err, 'failed to connect')
+      process.exit(1)
     })
 }
