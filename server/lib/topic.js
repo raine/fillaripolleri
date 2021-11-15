@@ -2,13 +2,14 @@ import * as R from 'ramda'
 import * as L from 'partial.lenses'
 import log from './logger'
 import * as nearley from 'nearley'
-import * as frameSizeGrammar from  '../grammar/frame-size'
+import * as frameSizeGrammar from '../grammar/frame-size'
+import * as entities from 'entities'
 import fs from 'fs'
 import camelCase from 'lodash.camelcase'
 import { DateTime } from 'luxon'
 import TurndownService from 'turndown'
 
-const turndownService =  new TurndownService()
+const turndownService = new TurndownService()
 const locations = require('../data/cities.json')
 const abbrevToLocation = require('../data/cities-abbreviations.json')
 const locationToAbbrev = R.invertObj(abbrevToLocation)
@@ -85,11 +86,11 @@ export const parsePrice = R.pipe(
 const lastIsAWithUmlauts = (x) => x.slice(-1) === 'ä'
 const locationWordBoundary = (location) =>
   `\\b${location}${lastIsAWithUmlauts(location) ? '' : '\\b'}`
-const caseInsensitiveRegex = (str) =>
-  new RegExp(str, 'iu')
+const caseInsensitiveRegex = (str) => new RegExp(str, 'iu')
+
 export const cleanUpSubject = (location) =>
   R.pipe(
-    removeSold,
+    (subject) => entities.decodeHTML(subject),
     removeSold,
     removeSellingPrefix,
     removePrice,
@@ -97,7 +98,9 @@ export const cleanUpSubject = (location) =>
       ? remove(caseInsensitiveRegex(locationWordBoundary(location)))
       : R.identity,
     location && locationToAbbrev[location]
-      ? remove(caseInsensitiveRegex(locationWordBoundary(locationToAbbrev[location])))
+      ? remove(
+          caseInsensitiveRegex(locationWordBoundary(locationToAbbrev[location]))
+        )
       : R.identity,
     R.replace(/\s\s+/g, ' '),
     // Handle removed location that leaves something like (55cm, 2017, )
@@ -107,35 +110,41 @@ export const cleanUpSubject = (location) =>
     R.trim
   )
 
-const capitalize = (str) =>
-  str[0].toUpperCase() + str.slice(1).toLowerCase()
+const capitalize = (str) => str[0].toUpperCase() + str.slice(1).toLowerCase()
 
 // no \\b after {x} because ä in Jyväskylä is unicode and word boundaries don't
 // work with unicode
-const locationsRegex = new RegExp(locations.map(locationWordBoundary).join('|'), 'iu')
+const locationsRegex = new RegExp(
+  locations.map(locationWordBoundary).join('|'),
+  'iu'
+)
 const abbrevs = Object.keys(abbrevToLocation)
-const abbrevsRegex = new RegExp(abbrevs.map(locationWordBoundary).join('|'), 'iu')
+const abbrevsRegex = new RegExp(
+  abbrevs.map(locationWordBoundary).join('|'),
+  'iu'
+)
 
 const matchGetHead = R.curry((pat, str) => {
   const m = str.match(pat)
   return m ? m[0] : null
 })
 
-export const parseLocation = (str) => R.pipe(
-  R.replace(/\u00a0/g, ' '),
-  tryFns([
-    matchGetHead(locationsRegex),
-    (str) => {
-      const abbrev = matchGetHead(abbrevsRegex, str)
-      return abbrev ? abbrevToLocation[abbrev.toUpperCase()] : null
-    },
-    tryPatterns([
-      /Paikkakunta \(lisää myös otsikkoon\):\s?(\p{L}{3,})/u,
-      /Paikkakunta\s?(?<!\(lisää myös otsikkoon\)):\s?(\p{L}{3,})/u
-    ])
-  ]),
-  R.when(Boolean, capitalize)
-)(str)
+export const parseLocation = (str) =>
+  R.pipe(
+    R.replace(/\u00a0/g, ' '),
+    tryFns([
+      matchGetHead(locationsRegex),
+      (str) => {
+        const abbrev = matchGetHead(abbrevsRegex, str)
+        return abbrev ? abbrevToLocation[abbrev.toUpperCase()] : null
+      },
+      tryPatterns([
+        /Paikkakunta \(lisää myös otsikkoon\):\s?(\p{L}{3,})/u,
+        /Paikkakunta\s?(?<!\(lisää myös otsikkoon\)):\s?(\p{L}{3,})/u
+      ])
+    ]),
+    R.when(Boolean, capitalize)
+  )(str)
 
 const parseEachLineWithGrammar = (grammar, sanitizedMessage) =>
   R.pipe(
@@ -153,7 +162,8 @@ export const parseFrameSize = (id) => (sanitizedMessage) => {
   try {
     // fs.writeFileSync(`tmp/${id}.txt`, sanitizedMessage, 'utf8')
     results = parseEachLineWithGrammar(
-      nearley.Grammar.fromCompiled(frameSizeGrammar), sanitizedMessage
+      nearley.Grammar.fromCompiled(frameSizeGrammar),
+      sanitizedMessage
     )
   } catch (err) {
     log.error(err, 'error parsing sanitized message')
@@ -168,9 +178,8 @@ const frameSizeResultToDbSchema = ({ type, value }) => ({
   frameSizeCm: type === 'cm' ? value : null
 })
 
-const sanitizeMsg = R.pipe(
-  remove(/\u2028/g),
-  html => turndownService.turndown(html)
+const sanitizeMsg = R.pipe(remove(/\u2028/g), (html) =>
+  turndownService.turndown(html)
 )
 
 const FRAME_SIZE_CATEGORIES = [
