@@ -3,7 +3,7 @@ WITH new_topics AS (
     FROM topic_snapshot ts
     JOIN topic t
       ON t.guid = ts.guid
-   WHERE ts.created_at >= (now() - '1d'::INTERVAL)
+   -- WHERE ts.created_at >= (now() - '1d'::INTERVAL)
 )
 SELECT t.guid,
        min(t.date) AS date,
