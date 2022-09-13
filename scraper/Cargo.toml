@@ -1,0 +1,18 @@
+[package]
+name = "fillaripolleri-scraper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ureq = "2.5.0"
+color-eyre = "0.6.2"
+eyre = "0.6.8"
+tracing = "0.1.36"
+tracing-subscriber =  { version = "0.3.15", features = ["env-filter"] }
+feed-rs = "1.1.0"
+regex = { version = "1.6.0", default-features = false, features = ["std", "unicode-perl"] }
+lazy_static = "1.4.0"
+chrono = "0.4.22"
+postgres = { version = "0.19.4", features = ["with-chrono-0_4"] }

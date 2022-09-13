@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC1091
+. "$(git rev-parse --show-toplevel)"/.env
+
+set -euo pipefail
+
+dump_file="$1"
+url="$DATABASE_URL"
+pg_restore --clean --no-acl --no-owner -d "$url" "$dump_file"

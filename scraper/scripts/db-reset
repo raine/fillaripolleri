@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+db="fillaripolleri"
+psql="psql --no-psqlrc"
+
+$psql --no-psqlrc -d postgres -c "DROP DATABASE IF EXISTS $db;"
+$psql --no-psqlrc -d postgres -c "CREATE DATABASE $db;"
+$psql --no-psqlrc $db < "$(pwd)/sql/tables.sql"
