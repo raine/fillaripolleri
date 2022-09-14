@@ -21,6 +21,10 @@ CREATE INDEX topic_snapshot_guid_id ON topic_snapshot (guid, id);
 CREATE INDEX topic_snapshot_guid ON topic_snapshot (guid);
 CREATE INDEX topic_snapshot_created_at ON topic_snapshot (created_at);
 
+-- Currently the main purpose of the job table is to enable the node.js to
+-- listen for job_completed notifications that are triggered when the table is
+-- updato listen for job_completed notifications that are triggered when the
+-- table is updated at the end of this program.
 CREATE TABLE job (
   id          serial PRIMARY KEY,
   started_at  timestamptz NOT NULL DEFAULT now(),
