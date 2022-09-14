@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+image="registry.gitlab.com/rainevi/fillaripolleri/db-backup"
+commit="$(git rev-parse --verify HEAD)"
+
+docker build -t $image .
+docker tag $image $image:"$commit"
+docker tag $image $image:latest
+docker push $image
+
+# TODO: this could be deployed with helm
