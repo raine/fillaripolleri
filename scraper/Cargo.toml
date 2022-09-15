@@ -2,6 +2,11 @@
 name = "fillaripolleri-scraper"
 version = "0.1.0"
 edition = "2021"
+default-run = "fillaripolleri-scraper"
+
+[[bin]]
+name = "test"
+path = "src/test.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,5 +19,9 @@ tracing-subscriber =  { version = "0.3.15", features = ["env-filter"] }
 feed-rs = "1.1.0"
 regex = { version = "1.6.0", default-features = false, features = ["std", "unicode-perl"] }
 lazy_static = "1.4.0"
-chrono = "0.4.22"
-postgres = { version = "0.19.4", features = ["with-chrono-0_4"] }
+chrono = { version = "0.4.22", features = ["serde"] }
+postgres = { version = "0.19.4", features = ["with-chrono-0_4", "with-serde_json-1"] }
+serde = { version = "1.0.144", features = ["derive"] }
+serde_json = "1.0.85"
+toml = "0.5.9"
+serde_derive = "1.0.144"

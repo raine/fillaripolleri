@@ -1,15 +1,17 @@
+use crate::types::*;
 use chrono::{DateTime, Utc};
 use eyre::Result;
 use feed_rs::model::Feed;
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde_derive::{Deserialize, Serialize};
 use tracing::*;
 
-type CategoryId = i32;
-type Guid = i32;
-
+/// Represents a topic parsed from RSS feed XML. Saved to database as topic and topic_snapshot.
+/// Single topic may have multiple snapshots. New snapshots is created every time NewTopic for
+/// specific topic contains unseen subject and message.
 #[derive(Debug)]
-pub struct Topic {
+pub struct NewTopic {
     pub guid: Guid,
     pub category_id: CategoryId,
     pub date: DateTime<Utc>,
@@ -18,9 +20,43 @@ pub struct Topic {
     pub message: String,
 }
 
-pub fn parse_topics_from_feed(feed: &Feed) -> Vec<Topic> {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TopicSnapshot {
+    pub id: i32,
+    pub guid: Guid,
+    pub link: String,
+    pub subject: String,
+    pub message: String,
+    pub created_at: DateTime<Utc>,
+}
+
+// Struct for topic with all of its snapshots as retrieved from the database. These are parsed to
+// Items which contain information such as price and location.
+#[derive(Debug, Serialize)]
+pub struct TopicWithSnapshots {
+    pub guid: Guid,
+    pub category_id: CategoryId,
+    pub date: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub snapshots: Vec<TopicSnapshot>,
+}
+
+impl From<postgres::Row> for TopicWithSnapshots {
+    fn from(row: postgres::Row) -> Self {
+        Self {
+            guid: row.get("guid"),
+            created_at: row.get("created_at"),
+            date: row.get("date"),
+            category_id: row.get("category_id"),
+            snapshots: serde_json::from_value(row.get("snapshots"))
+                .expect("snapshots column should contain valid json"),
+        }
+    }
+}
+
+pub fn parse_topics_from_feed(feed: &Feed) -> Vec<NewTopic> {
     let category_id = parse_category_id_from_feed(feed);
-    let topics: Vec<Topic> = feed
+    let topics: Vec<NewTopic> = feed
         .entries
         .iter()
         .map(|entry| {
@@ -55,7 +91,7 @@ pub fn parse_topics_from_feed(feed: &Feed) -> Vec<Topic> {
                 message.truncate(message.len() - 1);
             }
 
-            Topic {
+            NewTopic {
                 category_id,
                 guid,
                 date,
@@ -84,13 +120,13 @@ pub fn parse_category_id_from_feed(feed: &Feed) -> CategoryId {
         .get(1)
         .expect("id should exist in url")
         .as_str()
-        .parse::<i32>()
+        .parse::<u32>()
         .expect("id should be an integer");
 
     id
 }
 
-pub fn create_topic(client: &mut postgres::Client, topic: &Topic) -> Result<bool> {
+pub fn create_topic(client: &mut postgres::Client, topic: &NewTopic) -> Result<bool> {
     let mut tx = client.transaction()?;
     let row = tx.query_opt("SELECT 1 FROM topic WHERE guid = $1", &[&topic.guid])?;
     let mut created = false;
@@ -109,7 +145,7 @@ pub fn create_topic(client: &mut postgres::Client, topic: &Topic) -> Result<bool
     Ok(created)
 }
 
-pub fn create_topic_snapshot(client: &mut postgres::Client, topic: &Topic) -> Result<bool> {
+pub fn create_topic_snapshot(client: &mut postgres::Client, topic: &NewTopic) -> Result<bool> {
     let mut tx = client.transaction()?;
     let row = tx.query_opt(
         "

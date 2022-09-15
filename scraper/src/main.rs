@@ -1,17 +1,20 @@
-mod config;
-mod feed_urls;
-mod job;
-mod topic;
-
 use eyre::Result;
 use feed_rs::model::Feed;
 use feed_urls::FEED_URLS;
 use job::*;
 use postgres::{Client, NoTls};
+use setup::*;
 use std::{thread::sleep, time::Duration};
 use topic::*;
 use tracing::*;
-use tracing_subscriber::EnvFilter;
+
+mod config;
+mod feed_urls;
+mod item;
+mod job;
+mod setup;
+mod topic;
+mod types;
 
 fn fetch_feed(url: &str) -> Result<Feed> {
     info!(url, "getting feed");
@@ -50,23 +53,5 @@ fn main() -> Result<()> {
 
     mark_job_finished(&mut conn, job.id)?;
     info!("scraping feeds completed");
-    Ok(())
-}
-
-fn setup() -> Result<()> {
-    color_eyre::install()?;
-
-    if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "info");
-    }
-
-    if std::env::var("RUST_LIB_BACKTRACE").is_err() {
-        std::env::set_var("RUST_LIB_BACKTRACE", "1");
-    }
-
-    tracing_subscriber::fmt::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();
-
     Ok(())
 }
