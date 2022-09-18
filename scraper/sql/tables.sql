@@ -1,8 +1,11 @@
+CREATE TYPE topic_tag AS ENUM ('for_sale', 'sold', 'want_to_buy', 'invalid', 'giving_away');
+
 CREATE TABLE topic (
   guid         integer PRIMARY KEY,
   category_id  integer NOT NULL,
   date         timestamptz NOT NULL,
   created_at   timestamptz NOT NULL DEFAULT now()
+  tag          topic_tag,
 );
 
 CREATE TABLE topic_snapshot (
@@ -41,7 +44,8 @@ CREATE TYPE tshirt_size AS ENUM (
 );
 
 CREATE TABLE item (
-  id                integer PRIMARY KEY,
+  guid              integer PRIMARY KEY,
+  -- Read this from topic table instead?
   timestamp         timestamptz NOT NULL,
   category_id       integer REFERENCES topic_category(id),
   title             text NOT NULL,

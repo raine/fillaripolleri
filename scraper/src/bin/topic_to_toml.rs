@@ -1,20 +1,14 @@
-#![allow(dead_code, unused_imports, unused_variables)]
 use eyre::Result;
+use fillaripolleri_scraper::config::*;
+use fillaripolleri_scraper::setup::*;
+use fillaripolleri_scraper::topic::*;
 use postgres::{Client, NoTls};
-use setup::*;
 use std::env;
-use topic::*;
-use tracing::*;
-
-mod config;
-mod setup;
-mod topic;
-mod types;
 
 fn main() -> Result<()> {
     setup()?;
     let guid: i32 = env::args().last().unwrap().parse()?;
-    let config = config::get_config();
+    let config = get_config();
     let mut conn =
         Client::connect(&config.database_url, NoTls).expect("failed connecting to the database");
 
@@ -29,11 +23,10 @@ fn main() -> Result<()> {
             ON ts.guid = t.guid
          WHERE t.guid = $1
          GROUP BY t.guid
-         ORDER BY guid DESC
         ";
 
     let topic = TopicWithSnapshots::from(conn.query_one(query, &[&guid])?);
-    let toml = toml::to_string(&topic).unwrap();
-    println!("{}", toml);
+    // let toml = toml::to_string(&topic).unwrap();
+    println!("{:#?}", topic);
     Ok(())
 }

@@ -1,3 +1,13 @@
+use crate::http::HttpClient;
+use eyre::Result;
+use feed_rs::model::Feed;
+
+pub fn fetch_feed(http: &mut HttpClient, url: &str) -> Result<Feed> {
+    let reader = http.get_as_reader(url)?;
+    let feed = feed_rs::parser::parse(reader)?;
+    Ok(feed)
+}
+
 // Hardcoded feed urls to scrape. These cannot be easily retrieved at runtime.
 pub const FEED_URLS: &[&str] = &[
     "https://www.fillaritori.com/forum/10-keulat-ja-iskunvaimentimet.xml",

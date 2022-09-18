@@ -1,0 +1,1 @@
+ALTER TABLE item RENAME COLUMN id TO guid;

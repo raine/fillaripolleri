@@ -1,2 +1,2 @@
-pub type CategoryId = u32;
-pub type Guid = u32;
+pub type CategoryId = i32;
+pub type Guid = i32;
