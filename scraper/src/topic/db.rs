@@ -35,7 +35,15 @@ pub fn create_topic(
 }
 
 pub fn update_topic_tag(client: &mut postgres::Client, guid: &Guid, tag: &TopicTag) -> Result<()> {
-    client.execute("UPDATE topic SET tag = $1 WHERE guid = $2", &[&tag, &guid])?;
+    client.execute(
+        "
+        UPDATE topic
+           SET tag = $1,
+               tag_updated_at = now()
+         WHERE guid = $2
+        ",
+        &[&tag, &guid],
+    )?;
     Ok(())
 }
 
