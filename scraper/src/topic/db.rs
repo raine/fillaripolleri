@@ -1,5 +1,6 @@
 use crate::types::*;
 use eyre::Result;
+use pg_interval::Interval;
 use postgres::types::Type;
 use tracing::*;
 
@@ -21,10 +22,10 @@ pub fn create_topic(
         None => Some(
             tx.query_one(
                 "
-                    INSERT INTO topic (category_id, guid, date, tag)
-                    VALUES ($1, $2, $3, $4)
-                    RETURNING *
-                    ",
+                INSERT INTO topic (category_id, guid, date, tag)
+                VALUES ($1, $2, $3, $4)
+                RETURNING *
+                ",
                 &[&topic.category_id, &topic.guid, &topic.date, &tag],
             )
             .map(Topic::from)?,
@@ -98,4 +99,29 @@ pub fn get_topic_with_snapshots(
 
     let maybe_row = client.query_opt(&stmt, &[&guid])?;
     Ok(maybe_row.map(TopicWithSnapshots::from))
+}
+
+pub fn get_latest_topics_with_snapshots(
+    client: &mut postgres::Client,
+    interval: &str,
+) -> Result<Vec<TopicWithSnapshots>> {
+    let interval = Interval::from_postgres(interval).unwrap();
+    let stmt = client.prepare(
+        "
+        SELECT t.guid,
+               t.category_id,
+               t.date,
+               t.created_at,
+               t.tag,
+               jsonb_agg(ts.* ORDER BY ts.id) AS snapshots
+          FROM topic t
+          JOIN topic_snapshot ts
+            ON ts.guid = t.guid
+         WHERE ts.created_at >= (now() - $1::interval)
+         GROUP BY t.guid
+        ",
+    )?;
+
+    let rows = client.query(&stmt, &[&interval])?;
+    Ok(rows.into_iter().map(TopicWithSnapshots::from).collect())
 }

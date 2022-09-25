@@ -32,6 +32,7 @@ pub enum TopicTag {
     Bought,
     Renting,
     Invalid,
+    Trading,
 }
 
 impl TryFrom<&str> for TopicTag {
@@ -46,6 +47,7 @@ impl TryFrom<&str> for TopicTag {
             "Ostetaan" => Ok(Self::WantToBuy),
             "Ostettu" => Ok(Self::Bought),
             "Vuokrataan" => Ok(Self::Renting),
+            "Vaihdetaan" => Ok(Self::Trading),
             "Ei_voimassa" => Ok(Self::Invalid),
             _ => Err(TagParseError::UnknownTag(s.to_owned())),
         }

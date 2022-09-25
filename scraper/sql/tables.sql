@@ -1,4 +1,4 @@
-CREATE TYPE topic_tag AS ENUM ('for_sale', 'sold', 'want_to_buy', 'invalid', 'giving_away');
+CREATE TYPE topic_tag AS ENUM ('ForSale', 'Reserved', 'Sold', 'WantToBuy', 'Invalid', 'GivingAway', 'Renting', 'Bought', 'Trading');
 
 CREATE TABLE topic (
   guid         integer PRIMARY KEY,
@@ -44,7 +44,7 @@ CREATE TYPE tshirt_size AS ENUM (
 );
 
 CREATE TABLE item (
-  guid              integer PRIMARY KEY,
+  id                integer PRIMARY KEY,
   -- Read this from topic table instead?
   timestamp         timestamptz NOT NULL,
   category_id       integer REFERENCES topic_category(id),
@@ -55,7 +55,8 @@ CREATE TABLE item (
   sold              boolean DEFAULT false,
   price             integer,
   location          text,
-  title_tsvector    tsvector NOT NULL
+  title_tsvector    tsvector NOT NULL,
+  updated_at        timestamptz,
 );
 
 CREATE INDEX item_title_tsvector_idx

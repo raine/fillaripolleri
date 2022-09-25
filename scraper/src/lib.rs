@@ -1,5 +1,6 @@
 pub mod config;
 pub mod feed;
+pub mod html;
 pub mod http;
 pub mod item;
 pub mod job;

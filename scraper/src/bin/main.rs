@@ -2,6 +2,7 @@ use eyre::Result;
 use fillaripolleri_scraper::config::*;
 use fillaripolleri_scraper::feed::*;
 use fillaripolleri_scraper::http::HttpClient;
+use fillaripolleri_scraper::item::*;
 use fillaripolleri_scraper::job::*;
 use fillaripolleri_scraper::setup::*;
 use fillaripolleri_scraper::topic::page::{fetch_topic_page_tag, TopicTag};
@@ -56,7 +57,12 @@ fn handle_feed_topic(
         }
     }
 
-    create_topic_snapshot(conn, feed_topic)?;
+    if create_topic_snapshot(conn, feed_topic)? {
+        let topic_with_snapshots = get_topic_with_snapshots(conn, &feed_topic.guid)?
+            .expect("this query should always return something");
+        let item = Item::from(&topic_with_snapshots);
+        upsert_item(conn, &item)?;
+    }
 
     Ok(())
 }
