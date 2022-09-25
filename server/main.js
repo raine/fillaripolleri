@@ -43,17 +43,6 @@ async function main() {
   app.listen(port, () => {
     log.info(`listening at ${port}`)
   })
-  ;(await listen())
-    .onValue((obj) => log.info(obj, 'got notification'))
-    .flatMap(() =>
-      processTopicsWithQuery(pgp.as.format(sql('latest_topics.sql')))
-    )
-    .onValue(() => {
-      log.info('done processing new topics')
-    })
-    .onError((err) => {
-      log.error(err)
-    })
 }
 
 main().catch((err) => {
