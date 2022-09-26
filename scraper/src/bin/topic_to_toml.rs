@@ -12,21 +12,7 @@ fn main() -> Result<()> {
     let mut conn =
         Client::connect(&config.database_url, NoTls).expect("failed connecting to the database");
 
-    let query = "
-        SELECT t.guid,
-               t.category_id,
-               t.date,
-               t.created_at,
-               t.tag,
-               jsonb_agg(ts.* ORDER BY ts.id) AS snapshots
-          FROM topic t
-          JOIN topic_snapshot ts
-            ON ts.guid = t.guid
-         WHERE t.guid = $1
-         GROUP BY t.guid
-        ";
-
-    let topic = TopicWithSnapshots::from(conn.query_one(query, &[&guid])?);
+    let topic = get_topic_with_snapshots(&mut conn, &guid)?.expect("topic with guid should exist");
     let toml = toml::to_string(&topic).unwrap();
     print!("{toml}");
     Ok(())
