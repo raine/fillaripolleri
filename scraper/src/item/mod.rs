@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_message() {
+    fn test_parse_message_basic() {
         let message = parse_toml_to_latest_snapshot_msg(262350);
         assert_eq!(
             parse_message(&message),
@@ -160,6 +160,24 @@ mod tests {
                 location: Some("Helsinki".to_string())
             }
         );
+    }
+
+    #[test]
+    fn test_parse_message_location() {
+        let table = vec![(
+            "\n\n<strong>Paikkakunta:</strong> Ilmajoki, Ahonkylä.\n\n",
+            "Ilmajoki",
+        )];
+
+        for (input, expected) in table {
+            assert_eq!(
+                parse_message(input),
+                ParsedMessage {
+                    price: None,
+                    location: Some(expected.to_string())
+                }
+            );
+        }
     }
 
     #[test]
