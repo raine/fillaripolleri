@@ -102,8 +102,10 @@ pub fn parse_subject(maybe_location: Option<&str>, subject: &str) -> String {
         Some(loc) => decoded.replace(&loc, ""),
         None => decoded.to_string(),
     };
+    let selling_re = regex!(r"\(myydään\)"i);
+    let without_selling_prefix = selling_re.replace(&without_city, "");
 
-    strip_dangling_punctuation(&without_city)
+    strip_dangling_punctuation(&without_selling_prefix)
 }
 
 #[cfg(test)]
@@ -153,6 +155,17 @@ mod tests {
         assert_eq!(
             parse_subject(Some("Helsinki"), "Lake CX 237 Maantiekengät, Helsinki"),
             "Lake CX 237 Maantiekengät"
+        );
+    }
+
+    #[test]
+    fn test_parse_subject_remove_selling() {
+        assert_eq!(
+            parse_subject(
+                Some("Turku"),
+                "(Myydään) Silverback Scoop Fatty 2018 Oranssi, M, Turku"
+            ),
+            r#"Silverback Scoop Fatty 2018 Oranssi, M"#,
         );
     }
 
