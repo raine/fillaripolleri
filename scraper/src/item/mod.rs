@@ -103,7 +103,7 @@ fn normalize_whitespace(str: &str) -> String {
 
 fn strip_prefixes(subject: &str) -> String {
     let re_prefixes = vec![
-        regex!(r"\((?:myydään|varattu|myyty|ei_voimassa)\)"i),
+        regex!(r"\((?:myydään|varattu|myyty|ei_voimassa|vuokrataan)\)"i),
         regex!(r"\b(?:myydään|varattu|myyty)\b"i),
     ];
 
