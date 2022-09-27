@@ -69,7 +69,8 @@ fn get_last_unsold_snapshot(topic: &TopicWithSnapshots) -> &TopicSnapshot {
         .iter()
         .filter(|s| !sold_re.is_match(&s.subject))
         .last()
-        .unwrap_or_else(|| panic!("topic should have unsold snapshot; guid={}", topic.guid))
+        // Fallback to last snapshot in case there is no last unsold snapshot
+        .unwrap_or_else(|| topic.snapshots.last().expect("topic should have snapshots"))
 }
 
 fn parse_message(message: &str) -> ParsedMessage {
@@ -250,5 +251,8 @@ mod tests {
 
         let item = parse_toml_to_item!(170926);
         assert_eq!(item.title, r#"Pivot Firebird 27,5" 2018 L-koko"#);
+
+        let item = parse_toml_to_item!(176312);
+        assert_eq!(item.title, r#"Canyon Grand Canyon CF 7.9 SL hard tail, M"#);
     }
 }
