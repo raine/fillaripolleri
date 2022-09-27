@@ -89,11 +89,32 @@ fn parse_sold(topic: &TopicWithSnapshots) -> bool {
 }
 
 fn strip_dangling_punctuation(subject: &str) -> String {
-    subject.trim().trim_end_matches(',').to_string()
+    let re = regex!(r"^\s*[-:!]\s*");
+
+    re.replace(subject, "")
+        .trim()
+        .trim_end_matches(',')
+        .to_string()
 }
 
-pub fn normalize_whitespace(str: &str) -> String {
+fn normalize_whitespace(str: &str) -> String {
     str.replace('\u{a0}', " ")
+}
+
+fn strip_prefixes(subject: &str) -> String {
+    let re_prefixes = vec![
+        regex!(r"\((?:myydään|varattu|myyty|ei_voimassa)\)"i),
+        regex!(r"\b(?:myydään|varattu|myyty)\b"i),
+    ];
+
+    let subject = subject.to_string();
+    for re in re_prefixes {
+        if re.is_match(&subject) {
+            return re.replace(&subject, "").to_string();
+        }
+    }
+
+    subject
 }
 
 pub fn parse_subject(maybe_location: Option<&str>, subject: &str) -> String {
@@ -103,10 +124,9 @@ pub fn parse_subject(maybe_location: Option<&str>, subject: &str) -> String {
         Some(loc) => decoded.replace(&loc, ""),
         None => decoded.to_string(),
     };
-    let selling_re = regex!(r"\(myydään\)"i);
-    let without_selling_prefix = selling_re.replace(&without_city, "");
 
-    strip_dangling_punctuation(&without_selling_prefix)
+    let without_prefixes = strip_prefixes(&without_city);
+    strip_dangling_punctuation(&without_prefixes)
 }
 
 #[cfg(test)]
@@ -161,13 +181,24 @@ mod tests {
 
     #[test]
     fn test_parse_subject_remove_selling() {
-        assert_eq!(
-            parse_subject(
-                Some("Turku"),
-                "(Myydään) Silverback Scoop Fatty 2018 Oranssi, M, Turku"
+        let table = vec![
+            (
+                "(Myydään) Silverback Scoop Fatty 2018 Oranssi, M",
+                "Silverback Scoop Fatty 2018 Oranssi, M",
             ),
-            r#"Silverback Scoop Fatty 2018 Oranssi, M"#,
-        );
+            (
+                "Varattu: DT Swiss HWYAAX00S3188S DT Swiss vapaaratas",
+                "DT Swiss HWYAAX00S3188S DT Swiss vapaaratas",
+            ),
+            (
+                "Varattu - Shimano 12-28 10-speed Pakka",
+                "Shimano 12-28 10-speed Pakka",
+            ),
+        ];
+
+        for (subject, expected) in table {
+            assert_eq!(parse_subject(None, subject), expected);
+        }
     }
 
     #[test]
