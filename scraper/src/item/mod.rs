@@ -1,8 +1,4 @@
-use crate::{
-    html::strip_html,
-    topic::{TopicTag, TopicWithSnapshots},
-    types::*,
-};
+use crate::{html::strip_html, topic::*, types::*};
 use chrono::{DateTime, Utc};
 use lazy_regex::regex;
 use regex::Regex;
@@ -25,15 +21,15 @@ pub struct Item {
 
 impl From<&TopicWithSnapshots> for Item {
     fn from(topic: &TopicWithSnapshots) -> Self {
-        let last_snapshot = topic
-            .snapshots
-            .last()
-            .expect("topic should always have snapshots (check sql query?)");
-
-        let link = last_snapshot.link.to_owned();
-        let last_snapshot_message = normalize_whitespace(&strip_html(&last_snapshot.message));
+        let last_unsold_snapshot = get_last_unsold_snapshot(topic);
+        let link = last_unsold_snapshot.link.to_owned();
+        let last_snapshot_message =
+            normalize_whitespace(&strip_html(&last_unsold_snapshot.message));
         let parsed_message = parse_message(&last_snapshot_message);
-        let title = parse_subject(parsed_message.location.as_deref(), &last_snapshot.subject);
+        let title = parse_subject(
+            parsed_message.location.as_deref(),
+            &last_unsold_snapshot.subject,
+        );
         let sold = parse_sold(topic);
 
         Self {
@@ -64,6 +60,16 @@ where
     } else {
         None
     }
+}
+
+fn get_last_unsold_snapshot(topic: &TopicWithSnapshots) -> &TopicSnapshot {
+    let sold_re = regex!(r"\bmyyty\b"i);
+    topic
+        .snapshots
+        .iter()
+        .filter(|s| !sold_re.is_match(&s.subject))
+        .last()
+        .unwrap_or_else(|| panic!("topic should have unsold snapshot; guid={}", topic.guid))
 }
 
 fn parse_message(message: &str) -> ParsedMessage {
@@ -222,5 +228,14 @@ mod tests {
     fn test_location() {
         let item = parse_toml_to_item!(262350);
         assert_eq!(item.location, Some("Helsinki".to_string()));
+    }
+
+    #[test]
+    fn test_use_latest_non_sold_snapshot() {
+        let item = parse_toml_to_item!(173115);
+        assert_eq!(item.title, "Garmin MARQ Expedition multisport älykello");
+
+        let item = parse_toml_to_item!(170926);
+        assert_eq!(item.title, r#"Pivot Firebird 27,5" 2018 L-koko"#);
     }
 }
