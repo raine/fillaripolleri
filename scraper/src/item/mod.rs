@@ -1,6 +1,7 @@
 use crate::{html::strip_html, topic::*, types::*};
 use chrono::{DateTime, Utc};
 use lazy_regex::regex;
+use levenshtein::levenshtein;
 use regex::Regex;
 
 pub mod db;
@@ -64,13 +65,27 @@ where
 
 fn get_last_unsold_snapshot(topic: &TopicWithSnapshots) -> &TopicSnapshot {
     let sold_re = regex!(r"\bmyyty\b"i);
-    topic
-        .snapshots
-        .iter()
-        .filter(|s| !sold_re.is_match(&s.subject))
-        .last()
-        // Fallback to last snapshot in case there is no last unsold snapshot
-        .unwrap_or_else(|| topic.snapshots.last().expect("topic should have snapshots"))
+    let mut prev: Option<&TopicSnapshot> = None;
+
+    for (i, snapshot) in topic.snapshots.iter().enumerate() {
+        // Snapshot sold, pick previous as last unsold
+        if let (true, Some(prev)) = (sold_re.is_match(&snapshot.subject), prev) {
+            return prev;
+        }
+
+        let is_last_snapshot = topic.snapshots.len() == i + 1;
+        if let (true, Some(prev)) = (is_last_snapshot, prev) {
+            // Subject may have been rewritten, pick the previous snapshot as last unsold
+            let distance_to_prev = levenshtein(&snapshot.subject, &prev.subject);
+            if distance_to_prev > 15 {
+                return prev;
+            }
+        }
+
+        prev = Some(snapshot);
+    }
+
+    topic.snapshots.last().expect("topic should have snapshots")
 }
 
 fn parse_message(message: &str) -> ParsedMessage {
@@ -284,6 +299,9 @@ mod tests {
         assert_eq!(item.title, r#"Pivot Firebird 27,5" 2018 L-koko"#);
 
         let item = parse_toml_to_item!(176312);
-        assert_eq!(item.title, r#"Canyon Grand Canyon CF 7.9 SL hard tail, M"#);
+        assert_eq!(item.title, "Canyon Grand Canyon CF 7.9 SL hard tail, M");
+
+        let item = parse_toml_to_item!(171691);
+        assert_eq!(item.title, "Canyon Inflite AL SLX 8.0 Pro Race -18, M");
     }
 }

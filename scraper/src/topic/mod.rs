@@ -45,7 +45,7 @@ impl From<Row> for Topic {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct TopicSnapshot {
     pub id: i32,
     pub guid: Guid,
