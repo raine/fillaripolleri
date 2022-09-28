@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
+set -xeuo pipefail
 
-set -euox pipefail
+image="registry.raine.dev/fillaripolleri-server"
+commit="$(git rev-parse --verify HEAD)"
 
-IMAGE="registry.gitlab.com/rainevi/fillaripolleri/server"
-COMMIT="$(git rev-parse --verify HEAD)"
+docker build -t $image .
+docker tag $image "$image:$commit"
+docker tag $image "$image:latest"
+docker push --all-tags "$image"
 
-RELEASE=master
-CHART_PATH=/Users/raine/code/kubernetes/my-kube/fillaripolleri
-
-docker build -t $IMAGE .
-docker tag $IMAGE $IMAGE:$COMMIT
-docker tag $IMAGE $IMAGE:latest
-docker push $IMAGE:$COMMIT
-docker push $IMAGE:latest
+image_with_sha="$(docker inspect --format='{{index .RepoDigests 0}}' $image:latest)"
 
 helm upgrade \
   --reuse-values \
-  --set server.tag="$COMMIT" \
-  $RELEASE $CHART_PATH
+  --set server.tag="$image_with_sha" \
+  "$HELM_RELEASE" "$CHART_PATH"
