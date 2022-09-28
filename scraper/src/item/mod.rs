@@ -104,9 +104,11 @@ fn parse_sold(topic: &TopicWithSnapshots) -> bool {
 }
 
 fn strip_dangling_punctuation(subject: &str) -> String {
-    let re = regex!(r"^\s*[-:!]\s*");
+    let re_start = regex!(r"^(\s*[-:!*]\s*)*");
+    let re_end = regex!(r"(\s*[-:!*]\s*)*$");
 
-    re.replace(subject, "")
+    re_end
+        .replace(&re_start.replace(subject, ""), "")
         .trim()
         .trim_end_matches(',')
         .to_string()
@@ -120,6 +122,7 @@ fn strip_prefixes(subject: &str) -> String {
     let re_prefixes = vec![
         regex!(r"\((?:myydään|varattu|myyty|ei_voimassa|vuokrataan)\)"i),
         regex!(r"\b(?:myydään|varattu|myyty)\b"i),
+        regex!(r"^m:"i),
     ];
 
     let subject = subject.to_string();
@@ -195,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_subject_remove_selling() {
+    fn test_parse_subject_strip_prefixes_and_punctuation() {
         let table = vec![
             (
                 "(Myydään) Silverback Scoop Fatty 2018 Oranssi, M",
@@ -209,6 +212,12 @@ mod tests {
                 "Varattu - Shimano 12-28 10-speed Pakka",
                 "Shimano 12-28 10-speed Pakka",
             ),
+            ("M: Cannondale CAAD10 48", "Cannondale CAAD10 48"),
+            (
+                "- - 120mm stem, 25,4mm clamp, Tampere",
+                "120mm stem, 25,4mm clamp, Tampere",
+            ),
+            ("Sinkulakitti - -", "Sinkulakitti"),
         ];
 
         for (subject, expected) in table {
