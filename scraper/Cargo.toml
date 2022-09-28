@@ -32,6 +32,8 @@ postgres-types = "0.2.4"
 html-escape = "0.2.11"
 lazy-regex = "2.3.0"
 pg_interval = "0.4.1"
+rayon = "1.5.3"
+fallible-iterator = "0.2.0"
 levenshtein = "1.0.5"
 
 [dev-dependencies]
