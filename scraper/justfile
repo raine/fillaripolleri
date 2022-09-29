@@ -1,0 +1,17 @@
+build:
+  cargo build
+
+build-release:
+  cargo build --release
+
+run-w *FLAGS:
+  fd .rs | entr -r cargo run {{FLAGS}}
+
+run-b *FLAGS:
+  cargo run --bin {{FLAGS}}
+
+test:
+  cargo test --lib -- --show-output
+
+test-w *FLAGS:
+  fd .rs | entr -r cargo test {{FLAGS}}
