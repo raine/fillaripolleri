@@ -29,6 +29,8 @@ fn main() -> Result<()> {
           JOIN topic_snapshot ts
             ON ts.guid = t.guid
          WHERE t.date >= '2020-01-13 00:00:00.000000+02'
+           AND ((t.tag IS DISTINCT FROM 'WantToBuy'
+             AND t.tag IS DISTINCT FROM 'Bought'))
          GROUP BY t.guid
          ",
     )?;
