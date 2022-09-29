@@ -29,6 +29,7 @@ FROM debian:buster-slim
 WORKDIR /app
 COPY --from=builder /app/target/release/fillaripolleri-scraper .
 RUN apt-get update && apt-get install -y \
+  # For healthchecks
   curl \
   && rm -rf /var/lib/apt/lists/*
 CMD ["./fillaripolleri-scraper"]
