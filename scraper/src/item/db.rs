@@ -50,39 +50,3 @@ pub fn upsert_item(client: &mut postgres::Client, item: &Item) -> Result<()> {
     info!(?item, "item upserted");
     Ok(())
 }
-
-pub async fn upsert_item_pool(client: &deadpool_postgres::Object, item: &Item) -> Result<()> {
-    let stmt = client.prepare_cached("
-        INSERT INTO item (id, timestamp, category_id, title, title_tsvector, link, sold, price, location)
-        VALUES ($1, $2, $3, $4, to_tsvector('finnish', $5), $6, $7, $8, $9)
-        ON CONFLICT (id)
-        DO UPDATE SET (title, title_tsvector, link, sold, price, location, updated_at) = (
-          EXCLUDED.title,
-          EXCLUDED.title_tsvector,
-          EXCLUDED.link,
-          EXCLUDED.sold,
-          EXCLUDED.price,
-          EXCLUDED.location,
-          NOW()
-        )
-        ").await?;
-
-    client
-        .execute(
-            &stmt,
-            &[
-                &item.id,
-                &item.timestamp,
-                &item.category_id,
-                &item.title,
-                &item.title,
-                &item.link,
-                &item.sold,
-                &item.price,
-                &item.location,
-            ],
-        )
-        .await?;
-
-    Ok(())
-}

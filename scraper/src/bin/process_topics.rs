@@ -1,68 +1,63 @@
-use deadpool_postgres::Pool;
 use eyre::Result;
+use fallible_iterator::FallibleIterator;
 use fillaripolleri_scraper::config::*;
 use fillaripolleri_scraper::item::*;
 use fillaripolleri_scraper::setup::*;
 use fillaripolleri_scraper::topic::TopicWithSnapshots;
-use par_stream::prelude::*;
-use postgres_types::ToSql;
-use std::str::FromStr;
-use std::sync::Arc;
+use postgres::types::ToSql;
+use postgres::{Client, NoTls};
+use rayon::prelude::*;
+use std::sync::Mutex;
 use std::time::Instant;
-use tokio_postgres::Config;
 
 const NO_PARAMS: Vec<&dyn ToSql> = Vec::new();
 
-#[tokio::main]
-async fn main() -> Result<()> {
+macro_rules! connect_db {
+    ($e:expr) => {
+        Client::connect($e, NoTls).expect("failed connecting to the database")
+    };
+}
+
+fn main() -> Result<()> {
     setup()?;
     let config = get_config();
-    let pg_config = Config::from_str(&config.database_url)?;
-    let manager = deadpool_postgres::Manager::new(pg_config, tokio_postgres::NoTls);
-    let pool = Arc::new(Pool::builder(manager).build()?);
-    let conn = pool.get().await?;
+    let mut conn = connect_db!(&config.database_url);
 
-    let query = conn
-        .prepare(
-            "
-            SELECT t.guid,
-                   t.category_id,
-                   t.date,
-                   t.created_at,
-                   t.tag,
-                   jsonb_agg(ts.* ORDER BY ts.id) AS snapshots
-              FROM topic t
-              JOIN topic_snapshot ts
-                ON ts.guid = t.guid
-             WHERE t.date >= '2020-01-13 00:00:00.000000+02'
-               AND ((t.tag IS DISTINCT FROM 'WantToBuy'
-                 AND t.tag IS DISTINCT FROM 'Bought'))
-             GROUP BY t.guid
-            ",
-        )
-        .await?;
+    let query = conn.prepare(
+        "
+        SELECT t.guid,
+               t.category_id,
+               t.date,
+               t.created_at,
+               t.tag,
+               jsonb_agg(ts.* ORDER BY ts.id) AS snapshots
+          FROM topic t
+          JOIN topic_snapshot ts
+            ON ts.guid = t.guid
+         WHERE t.date >= '2020-01-13 00:00:00.000000+02'
+           AND ((t.tag IS DISTINCT FROM 'WantToBuy'
+             AND t.tag IS DISTINCT FROM 'Bought'))
+         GROUP BY t.guid
+        ",
+    )?;
 
     let start = Instant::now();
-    let conn_inner = Arc::new(pool.get().await?);
+    let conn_inner = Mutex::new(connect_db!(&config.database_url));
+    let upsert_stmt = { make_upsert_item_stmt(&mut conn_inner.lock().unwrap())? };
 
-    conn.query_raw(&query, NO_PARAMS)
-        .await?
-        .try_par_map(None, move |row| {
-            move || {
-                let topic = TopicWithSnapshots::from(row);
-                let item = Item::from(&topic);
-                Ok((topic, item))
-            }
+    conn.query_raw(&query, NO_PARAMS)?
+        .iterator()
+        .par_bridge()
+        .map(|res| {
+            let topic = TopicWithSnapshots::from(res.unwrap());
+            let item = Item::from(&topic);
+            (topic, item)
         })
-        .try_par_for_each(None, move |(topic, item)| {
-            let conn_inner = conn_inner.clone();
-            async move {
-                print_row(&topic, &item);
-                upsert_item_pool(&conn_inner, &item).await.unwrap();
-                Ok(())
-            }
-        })
-        .await?;
+        .for_each(|(topic, item)| {
+            let mut conn = conn_inner.lock().unwrap();
+            exec_upsert_item_stmt(&mut conn, &upsert_stmt, &item).unwrap();
+            print_row(&topic, &item);
+        });
 
     println!("took {:?}", start.elapsed());
     Ok(())
