@@ -7,6 +7,7 @@ use fillaripolleri_scraper::topic::TopicWithSnapshots;
 use postgres::types::ToSql;
 use postgres::{Client, NoTls};
 use rayon::prelude::*;
+use std::sync::Mutex;
 use std::time::Instant;
 
 const NO_PARAMS: Vec<&dyn ToSql> = Vec::new();
@@ -32,16 +33,26 @@ fn main() -> Result<()> {
            AND ((t.tag IS DISTINCT FROM 'WantToBuy'
              AND t.tag IS DISTINCT FROM 'Bought'))
          GROUP BY t.guid
-         ",
+        ",
     )?;
 
     let start = Instant::now();
+    let conn_inner = Mutex::new(
+        Client::connect(&config.database_url, NoTls).expect("failed connecting to the database"),
+    );
+    let upsert_stmt = { make_upsert_item_stmt(&mut conn_inner.lock().unwrap())? };
+
     conn.query_raw(&query, NO_PARAMS)?
         .iterator()
         .par_bridge()
-        .for_each(|res| {
+        .map(|res| {
             let topic = TopicWithSnapshots::from(res.unwrap());
             let item = Item::from(&topic);
+            (topic, item)
+        })
+        .for_each(|(topic, item)| {
+            let mut conn = conn_inner.lock().unwrap();
+            exec_upsert_item_stmt(&mut conn, &upsert_stmt, &item).unwrap();
             print_row(&topic, &item);
         });
 
