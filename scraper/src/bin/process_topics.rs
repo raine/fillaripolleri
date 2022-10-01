@@ -43,6 +43,7 @@ async fn main() -> Result<()> {
         .await?;
 
     let start = Instant::now();
+    let conn_inner = Arc::new(pool.get().await?);
 
     conn.query_raw(&query, NO_PARAMS)
         .await?
@@ -54,11 +55,10 @@ async fn main() -> Result<()> {
             }
         })
         .try_par_for_each(None, move |(topic, item)| {
-            let pool_clone = Arc::clone(&pool);
+            let conn_inner = conn_inner.clone();
             async move {
-                let conn = pool_clone.get().await.unwrap();
                 print_row(&topic, &item);
-                upsert_item_pool(&conn, &item).await.unwrap();
+                upsert_item_pool(&conn_inner, &item).await.unwrap();
                 Ok(())
             }
         })
