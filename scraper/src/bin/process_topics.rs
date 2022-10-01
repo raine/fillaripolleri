@@ -7,6 +7,7 @@ use fillaripolleri_scraper::topic::TopicWithSnapshots;
 use par_stream::prelude::*;
 use postgres_types::ToSql;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::time::Instant;
 use tokio_postgres::Config;
 
@@ -18,9 +19,9 @@ async fn main() -> Result<()> {
     let config = get_config();
     let pg_config = Config::from_str(&config.database_url)?;
     let manager = deadpool_postgres::Manager::new(pg_config, tokio_postgres::NoTls);
-    let pool = Pool::builder(manager).build()?;
+    let pool = Arc::new(Pool::builder(manager).build()?);
+    let conn = pool.get().await?;
 
-    let conn = pool.get().await.unwrap();
     let query = conn
         .prepare(
             "
@@ -42,18 +43,24 @@ async fn main() -> Result<()> {
         .await?;
 
     let start = Instant::now();
-    let row_stream = conn.query_raw(&query, NO_PARAMS).await?;
-    row_stream
-        .try_par_map(None, |row| {
+
+    conn.query_raw(&query, NO_PARAMS)
+        .await?
+        .try_par_map(None, move |row| {
             move || {
                 let topic = TopicWithSnapshots::from(row);
                 let item = Item::from(&topic);
                 Ok((topic, item))
             }
         })
-        .try_par_for_each(None, |(topic, item)| async move {
-            print_row(&topic, &item);
-            Ok(())
+        .try_par_for_each(None, move |(topic, item)| {
+            let pool_clone = Arc::clone(&pool);
+            async move {
+                let conn = pool_clone.get().await.unwrap();
+                print_row(&topic, &item);
+                upsert_item_pool(&conn, &item).await.unwrap();
+                Ok(())
+            }
         })
         .await?;
 
