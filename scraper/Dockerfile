@@ -13,7 +13,9 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef as cacher
 WORKDIR /app
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN --mount=type=cache,target=/home/root/.cargo/git \
+    --mount=type=cache,target=/home/root/.cargo/registry \
+    cargo chef cook --release --recipe-path recipe.json
 
 # Step 4: Build the binary
 FROM rust:1.63.0-slim-buster as builder
@@ -22,14 +24,17 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY --from=cacher /app/target target
 COPY --from=cacher $CARGO_HOME $CARGO_HOME
-RUN cargo build --release
+RUN --mount=type=cache,target=/home/root/.cargo/git \
+    --mount=type=cache,target=/home/root/.cargo/registry \
+    cargo build --release
 
 # Step 5: Create the final image with binary and deps
 FROM debian:buster-slim
 WORKDIR /app
-COPY --from=builder /app/target/release/fillaripolleri-scraper .
+COPY --from=builder /app/target/release/fillaripolleri_scraper .
+COPY --from=builder /app/target/release/process_topics .
 RUN apt-get update && apt-get install -y \
   # For healthchecks
   curl \
   && rm -rf /var/lib/apt/lists/*
-CMD ["./fillaripolleri-scraper"]
+CMD ["./fillaripolleri_scraper"]

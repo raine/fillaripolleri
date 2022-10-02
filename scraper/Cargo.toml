@@ -2,10 +2,10 @@
 name = "fillaripolleri-scraper"
 version = "0.1.0"
 edition = "2021"
-default-run = "fillaripolleri-scraper"
+default-run = "fillaripolleri_scraper"
 
 [[bin]]
-name = "fillaripolleri-scraper"
+name = "fillaripolleri_scraper"
 path = "src/bin/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
