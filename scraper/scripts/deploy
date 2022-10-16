@@ -14,5 +14,5 @@ image_with_sha="$(docker inspect --format='{{index .RepoDigests 0}}' $image:late
 
 helm upgrade \
   --reuse-values \
-  --set scraper.tag="$image_with_sha" \
+  --set scraper.image="$image_with_sha" \
   "$HELM_RELEASE" "$CHART_PATH"
