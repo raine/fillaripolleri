@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         .par_bridge()
         .map(|res| {
             let topic = TopicWithSnapshots::from(res.unwrap());
-            let item = Item::from(&topic);
+            let item = NewItem::from(&topic);
             (topic, item)
         })
         .for_each(|(topic, item)| {
@@ -63,7 +63,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn print_row(topic: &TopicWithSnapshots, item: &Item) {
+fn print_row(topic: &TopicWithSnapshots, item: &NewItem) {
     println!(
         "{} {} {} {}",
         item.timestamp,

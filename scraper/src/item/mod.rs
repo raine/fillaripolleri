@@ -6,10 +6,43 @@ use regex::Regex;
 
 pub mod db;
 pub use db::*;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+/// Parsed from TopicWithSnapshots. Used in frontend as data.
+pub struct Item {
+    pub id: Guid,
+    pub timestamp: DateTime<Utc>,
+    // Ideally categories and their names would be read in client in separate request, but category
+    // name is embedded to Item for simplicity.
+    pub category: String,
+    pub category_id: CategoryId,
+    pub title: String,
+    pub link: String,
+    pub sold: bool,
+    pub price: Option<Price>,
+    pub location: Option<String>,
+}
+
+impl From<postgres::Row> for Item {
+    fn from(row: postgres::Row) -> Self {
+        Self {
+            id: row.get("id"),
+            timestamp: row.get("timestamp"),
+            category: row.get("category"),
+            category_id: row.get("category_id"),
+            title: row.get("title"),
+            link: row.get("link"),
+            sold: row.get("sold"),
+            price: row.get("price"),
+            location: row.get("location"),
+        }
+    }
+}
 
 #[derive(Debug)]
 /// Parsed from TopicWithSnapshots. Used in frontend as data.
-pub struct Item {
+pub struct NewItem {
     pub id: Guid,
     pub timestamp: DateTime<Utc>,
     pub category_id: CategoryId,
@@ -20,7 +53,7 @@ pub struct Item {
     pub location: Option<String>,
 }
 
-impl From<&TopicWithSnapshots> for Item {
+impl From<&TopicWithSnapshots> for NewItem {
     fn from(topic: &TopicWithSnapshots) -> Self {
         let last_unsold_snapshot = get_last_unsold_snapshot(topic);
         let link = last_unsold_snapshot.link.to_owned();
@@ -164,7 +197,7 @@ mod tests {
     macro_rules! parse_toml_to_item {
         ($e:expr) => {{
             let topic_with_snapshots = parse_toml_to_topic!($e);
-            Item::from(&topic_with_snapshots)
+            NewItem::from(&topic_with_snapshots)
         }};
     }
 

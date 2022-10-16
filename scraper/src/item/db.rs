@@ -1,7 +1,7 @@
 use eyre::Result;
 use tracing::*;
 
-use super::Item;
+use super::NewItem;
 
 pub fn make_upsert_item_stmt(
     client: &mut postgres::Client,
@@ -25,7 +25,7 @@ pub fn make_upsert_item_stmt(
 pub fn exec_upsert_item_stmt(
     client: &mut postgres::Client,
     stmt: &postgres::Statement,
-    item: &Item,
+    item: &NewItem,
 ) -> Result<()> {
     client.execute(
         stmt,
@@ -44,7 +44,7 @@ pub fn exec_upsert_item_stmt(
     Ok(())
 }
 
-pub fn upsert_item(client: &mut postgres::Client, item: &Item) -> Result<()> {
+pub fn upsert_item(client: &mut postgres::Client, item: &NewItem) -> Result<()> {
     let stmt = make_upsert_item_stmt(client)?;
     exec_upsert_item_stmt(client, &stmt, item)?;
     info!(?item, "item upserted");

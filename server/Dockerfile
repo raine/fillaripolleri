@@ -1,20 +1,42 @@
-FROM node:10.5-alpine
+# Step 1: Install cargo-chef
+FROM rust:1.63.0-slim-buster as chef
+WORKDIR /workspace
+RUN cargo install cargo-chef
 
-WORKDIR /usr/src/app
+# Step 2: Compute a recipe file
+FROM chef AS planner
+COPY Cargo.toml Cargo.lock ./
+COPY scraper/Cargo.toml ./scraper/Cargo.toml
+COPY scraper/src ./scraper/src
+COPY server/Cargo.toml ./server/Cargo.toml
+COPY server/src ./server/src
+RUN cd ./server && cargo chef prepare --recipe-path recipe.json
 
-RUN apk add -U bash
+# Step 3: Cache project dependencies
+FROM chef as cacher
+WORKDIR /workspace/server
+COPY --from=planner /workspace/scraper/Cargo.toml /workspace/scraper/Cargo.toml
+COPY --from=planner /workspace/server/recipe.json recipe.json
+RUN --mount=type=cache,target=/home/root/.cargo/git \
+    --mount=type=cache,target=/home/root/.cargo/registry \
+    cargo chef cook --release --recipe-path recipe.json
 
-ENV NODE_ENV=production
-COPY package.json yarn.lock ./
-RUN yarn install
+# Step 4: Build the binary
+FROM rust:1.63.0-slim-buster as builder
+WORKDIR /workspace
+COPY Cargo.toml Cargo.lock ./
+COPY scraper/Cargo.toml ./scraper/Cargo.toml
+COPY scraper/src ./scraper/src
+COPY server/Cargo.toml ./server/Cargo.toml
+COPY server/src ./server/src
+COPY --from=cacher /workspace/server/target /workspace/server/target
+COPY --from=cacher $CARGO_HOME $CARGO_HOME
+RUN --mount=type=cache,target=/home/root/.cargo/git \
+    --mount=type=cache,target=/home/root/.cargo/registry \
+    cargo build --release
 
-COPY sql ./sql
-COPY lib ./lib
-COPY routes ./routes
-COPY scripts ./scripts
-COPY data ./data
-COPY grammar ./grammar
-
-COPY index.js main.js ./
-
-CMD ["npm", "start"]
+# Step 5: Create the final image with binary
+FROM debian:buster-slim
+WORKDIR /workspace
+COPY --from=builder /workspace/target/release/server .
+CMD ["./server"]

@@ -14,7 +14,7 @@ fn main() -> Result<()> {
         Client::connect(&config.database_url, NoTls).expect("failed connecting to the database");
 
     let topic = get_topic_with_snapshots(&mut conn, &guid)?.expect("topic with guid should exist");
-    let item = Item::from(&topic);
+    let item = NewItem::from(&topic);
     dbg!(item);
     Ok(())
 }

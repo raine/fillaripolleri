@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-
 set -xeuo pipefail
 
 image="registry.raine.dev/fillaripolleri-server"
 commit="$(git rev-parse --verify HEAD)"
 
-cd "$(git rev-parse --show-toplevel)"
-docker build -t $image -f server/Dockerfile .
+docker build -t $image .
 docker tag $image "$image:$commit"
 docker tag $image "$image:latest"
 docker push --all-tags "$image"
@@ -15,5 +13,5 @@ image_with_sha="$(docker inspect --format='{{index .RepoDigests 0}}' $image:late
 
 helm upgrade \
   --reuse-values \
-  --set server.image="$image_with_sha" \
+  --set server.tag="$image_with_sha" \
   "$HELM_RELEASE" "$CHART_PATH"

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ssh kube-1 -- cat /mnt/volume-hel1-1/logs/nginx-ingress-controller.log \
+  | grep default-master-fillaripolleri-client \
+  | jq '.log' -r \
+  | goaccess \
+    - \
+    --real-os \
+    --log-format='%^ %^ [%h] - - [%d:%t] "%m %U %^ %s %b "%R" "%u" %^ %^ %^ %^ %^ %T %^' \
+    --date-format="%d/%b/%Y" \
+    --time-format="%H:%M:%S +0000" \
+    --exclude-ip '35.173.69.86' \
+    --exclude-ip '52.42.49.200' \
+    --exclude-ip '91.153.57.216' \
+    --exclude-ip '10.32.0.1-10.32.0.255' \
+    --agent-list \
+    --ignore-crawlers \
+    -o goaccess.html \
+  && open goaccess.html

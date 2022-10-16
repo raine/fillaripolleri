@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fillaripolleri-process-topics
+spec:
+  template:
+    spec:
+      containers:
+        - name: fillaripolleri-process-topics
+          imagePullPolicy: Always
+          image: "registry.raine.dev/fillaripolleri-scraper:latest"
+          args:
+            - ./process_topics
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fillaripolleri
+                  key: database_url
+      restartPolicy: Never
