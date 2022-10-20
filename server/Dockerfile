@@ -10,16 +10,16 @@ COPY scraper/Cargo.toml ./scraper/Cargo.toml
 COPY scraper/src ./scraper/src
 COPY server/Cargo.toml ./server/Cargo.toml
 COPY server/src ./server/src
-RUN cd ./server && cargo chef prepare --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json --bin server
 
 # Step 3: Cache project dependencies
 FROM chef as cacher
-WORKDIR /workspace/server
+WORKDIR /workspace
 COPY --from=planner /workspace/scraper/Cargo.toml /workspace/scraper/Cargo.toml
-COPY --from=planner /workspace/server/recipe.json recipe.json
+COPY --from=planner /workspace/recipe.json recipe.json
 RUN --mount=type=cache,target=/home/root/.cargo/git \
     --mount=type=cache,target=/home/root/.cargo/registry \
-    cargo chef cook --release --recipe-path recipe.json
+    cargo chef cook --release --recipe-path recipe.json --bin server
 
 # Step 4: Build the binary
 FROM rust:1.63.0-slim-buster as builder
@@ -29,7 +29,7 @@ COPY scraper/Cargo.toml ./scraper/Cargo.toml
 COPY scraper/src ./scraper/src
 COPY server/Cargo.toml ./server/Cargo.toml
 COPY server/src ./server/src
-COPY --from=cacher /workspace/server/target /workspace/server/target
+COPY --from=cacher /workspace/target /workspace/target
 COPY --from=cacher $CARGO_HOME $CARGO_HOME
 RUN --mount=type=cache,target=/home/root/.cargo/git \
     --mount=type=cache,target=/home/root/.cargo/registry \
