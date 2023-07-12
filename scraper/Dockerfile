@@ -1,7 +1,8 @@
 # Step 1: Install cargo-chef
-FROM rust:1.63.0-slim-buster as chef
+FROM rust:1.70.0-slim-bookworm as chef
 WORKDIR /app
-RUN cargo install cargo-chef
+RUN --mount=type=cache,target=/home/root/.cargo/registry \
+    cargo install cargo-chef
 
 # Step 2: Compute a recipe file
 FROM chef AS planner
@@ -18,7 +19,7 @@ RUN --mount=type=cache,target=/home/root/.cargo/git \
     cargo chef cook --release --recipe-path recipe.json
 
 # Step 4: Build the binary
-FROM rust:1.63.0-slim-buster as builder
+FROM rust:1.70.0-slim-bookworm as builder
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
@@ -29,7 +30,7 @@ RUN --mount=type=cache,target=/home/root/.cargo/git \
     cargo build --release
 
 # Step 5: Create the final image with binary and deps
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 WORKDIR /app
 COPY --from=builder /app/target/release/fillaripolleri_scraper .
 COPY --from=builder /app/target/release/process_topics .
