@@ -2,6 +2,8 @@ FROM node:10.5-alpine as build
 
 WORKDIR /usr/src/app
 
+RUN apk add --no-cache python2 make g++
+
 COPY package.json yarn.lock ./
 RUN yarn install --pure-lockfile
 
