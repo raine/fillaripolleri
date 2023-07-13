@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     let manager = deadpool_postgres::Manager::new(pg_config, tokio_postgres::NoTls);
     let pool = Pool::builder(manager).build()?;
     let app = Router::new()
-        .route("/items", get(get_items))
+        .route("/api/items", get(get_items))
         .layer(Extension(pool));
 
     info!("Listening at http://{addr}");
