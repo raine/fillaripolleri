@@ -1,0 +1,19 @@
+host: fillaripolleri.fsn.raine.dev
+
+server:
+  image: registry.fsn.raine.dev/fillaripolleri/server:latest
+  port: 3000
+
+client:
+  image: registry.fsn.raine.dev/fillaripolleri/client:latest
+  port: 80
+
+scraper:
+  image: registry.fsn.raine.dev/fillaripolleri/scraper:latest
+
+db_backup:
+  repository: registry.gitlab.com/rainevi/fillaripolleri/db-backup
+  tag: latest
+
+imagePullSecrets:
+  - name: private-registry

@@ -2,7 +2,7 @@
 
 set -xeuo pipefail
 
-image="registry.raine.dev/fillaripolleri-scraper"
+image="registry.fsn.raine.dev/fillaripolleri/scraper"
 commit="$(git rev-parse --verify HEAD)"
 
 docker build -t $image .
@@ -13,6 +13,6 @@ docker push --all-tags "$image"
 image_with_sha="$(docker inspect --format='{{index .RepoDigests 0}}' $image:latest)"
 
 helm upgrade \
-  --reuse-values \
-  --set scraper.image="$image_with_sha" \
-  "$HELM_RELEASE" "$CHART_PATH"
+	--reuse-values \
+	--set scraper.image="$image_with_sha" \
+	"$HELM_RELEASE" "$CHART_PATH"

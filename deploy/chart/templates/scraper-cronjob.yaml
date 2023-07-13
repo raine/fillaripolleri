@@ -1,0 +1,39 @@
+{{- $fullName := printf "%s-%s" (include "fillaripolleri.fullname" .) "scraper" -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $fullName }}
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: {{ $fullName }}
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            {{- toYaml .Values.imagePullSecrets | nindent 14 }}
+          containers:
+            - name: {{ $fullName }}
+              imagePullPolicy: Always
+              image: {{ .Values.scraper.image }}
+              args:
+                - /bin/sh
+                - -c
+                - ./fillaripolleri_scraper && curl -fsS --retry 3 "$SCRAPER_HEALTHCHECK_URL"
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: fillaripolleri
+                      key: database_url
+                - name: SCRAPER_HEALTHCHECK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: fillaripolleri
+                      key: scraper_healthcheck_url
