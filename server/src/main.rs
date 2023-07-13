@@ -1,6 +1,5 @@
-#![allow(dead_code, unused_imports, unused_variables)]
+use std::net::SocketAddr;
 use std::str::FromStr;
-use std::{net::SocketAddr, sync::Arc};
 
 use axum::extract::Query;
 use axum::http::StatusCode;
@@ -67,16 +66,17 @@ async fn get_items(
     let limit = (PAGE_SIZE + 1) as i32;
     let items = get_latest_items(&pool, limit, search, category, after_id)
         .await
-        .map_err(|err| {
+        .map_err(|e| {
+            error!("Error getting items: {}", e);
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("something went wrong: {err}"),
+                "Internal server error".to_string(),
             )
         })?;
 
     // Query returns up to 51 items. If we actually have <= 50 (page size), we know it's the last page.
     let items_len = items.len();
-    let is_last_page = items_len <= PAGE_SIZE as usize;
+    let is_last_page = items_len <= PAGE_SIZE;
     let page_items = items.into_iter().take(PAGE_SIZE).collect();
 
     Ok(Json(ItemsResponse {
