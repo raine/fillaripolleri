@@ -2,7 +2,7 @@
 
 set -xeuo pipefail
 
-image="registry.fsn.raine.dev/fillaripolleri/scraper"
+image="registry.raine.dev/fillaripolleri/scraper"
 commit="$(git rev-parse --verify HEAD)"
 
 docker build -t $image .

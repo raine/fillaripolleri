@@ -5,7 +5,7 @@ set -euox pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root/client"
 
-image="registry.fsn.raine.dev/fillaripolleri/client"
+image="registry.raine.dev/fillaripolleri/client"
 commit="$(git rev-parse --verify HEAD)"
 
 docker build -t $image .

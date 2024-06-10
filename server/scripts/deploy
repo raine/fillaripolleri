@@ -2,7 +2,7 @@
 
 set -xeuo pipefail
 
-image="registry.fsn.raine.dev/fillaripolleri/server"
+image="registry.raine.dev/fillaripolleri/server"
 commit="$(git rev-parse --verify HEAD)"
 
 cd "$(git rev-parse --show-toplevel)"
