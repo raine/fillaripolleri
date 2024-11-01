@@ -1,7 +1,7 @@
 # Step 1: Install cargo-chef
 FROM rust:1.70.0-slim-bookworm as chef
 WORKDIR /workspace
-RUN cargo install cargo-chef
+RUN cargo install --locked cargo-chef@0.1.62
 
 # Step 2: Compute a recipe file
 FROM chef AS planner
