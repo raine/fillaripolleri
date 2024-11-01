@@ -1,5 +1,5 @@
 # Step 1: Install cargo-chef
-FROM rust:1.70.0-slim-bookworm as chef
+FROM rust:1.70.0-slim-bookworm AS chef
 WORKDIR /workspace
 RUN cargo install --locked cargo-chef@0.1.62
 
@@ -13,7 +13,7 @@ COPY server/src ./server/src
 RUN cargo chef prepare --recipe-path recipe.json --bin server
 
 # Step 3: Cache project dependencies
-FROM chef as cacher
+FROM chef AS cacher
 WORKDIR /workspace
 COPY --from=planner /workspace/scraper/Cargo.toml /workspace/scraper/Cargo.toml
 COPY --from=planner /workspace/recipe.json recipe.json
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/home/root/.cargo/git \
     cargo chef cook --release --recipe-path recipe.json --bin server
 
 # Step 4: Build the binary
-FROM rust:1.70.0-slim-bookworm as builder
+FROM rust:1.70.0-slim-bookworm AS builder
 WORKDIR /workspace
 COPY Cargo.toml Cargo.lock ./
 COPY scraper/Cargo.toml ./scraper/Cargo.toml
